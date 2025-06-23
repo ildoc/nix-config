@@ -6,7 +6,7 @@
   ];
 
   # Configurazioni specifiche per server
-  networking.hostName = "server";
+  networking.hostName = "dev-server";
   
   # Boot loader
   boot.loader.systemd-boot.enable = true;
