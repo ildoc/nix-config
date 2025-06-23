@@ -39,7 +39,7 @@
 
   nixpkgs.config.allowUnfree = true;
 
-  # ZSH configuration (comune a tutti gli host)
+  # ZSH configuration (comune a tutti gli host e per tutti gli utenti)
   programs.zsh = {
     enable = true;
     autosuggestions.enable = true;
@@ -73,7 +73,10 @@
       setopt HIST_REDUCE_BLANKS
       
       # Prompt customization per agnoster
-      DEFAULT_USER="filippo"
+      # Per root non impostare DEFAULT_USER per mostrare sempre il nome utente
+      if [[ "$USER" != "root" ]]; then
+        DEFAULT_USER="filippo"
+      fi
       
       # Common aliases
       alias ll="ls -la"
@@ -88,6 +91,39 @@
       # NixOS specific
       alias rebuild="sudo nixos-rebuild switch --flake /etc/nixos"
       alias update="sudo nix flake update /etc/nixos"
+      
+      # Git aliases
+      alias gs="git status"
+      alias ga="git add"
+      alias gc="git commit"
+      alias gp="git push"
+      alias gl="git log --oneline --graph"
+      alias gd="git diff"
+      alias gco="git checkout"
+      alias gcb="git checkout -b"
+      alias gm="git merge"
+      alias gr="git rebase"
+      alias gst="git stash"
+      alias gstp="git stash pop"
+      
+      # Docker shortcuts (se disponibile)
+      if command -v docker >/dev/null 2>&1; then
+        alias dps="docker ps"
+        alias dpa="docker ps -a"
+        alias di="docker images"
+        alias dc="docker-compose"
+        alias dcup="docker-compose up -d"
+        alias dcdown="docker-compose down"
+        alias dclogs="docker-compose logs -f"
+      fi
+      
+      # Kubernetes shortcuts (se disponibile)
+      if command -v kubectl >/dev/null 2>&1; then
+        alias k="kubectl"
+        alias kgp="kubectl get pods"
+        alias kgs="kubectl get services"
+        alias kgd="kubectl get deployments"
+      fi
       
       # Common functions
       mkcd() { mkdir -p "$1" && cd "$1"; }
@@ -120,18 +156,30 @@
       case "$(hostname)" in
         "dev-server")
           export DOCKER_HOST="unix:///var/run/docker.sock"
-          alias k="kubectl"
+          export KUBE_EDITOR="nano"
+          export EDITOR="nano"
+          export VISUAL="nano"
           ;;
         "work-laptop")
-          alias rider="nohup rider > /dev/null 2>&1 &"
+          export EDITOR="nano"
+          export VISUAL="nano"
+          if [[ "$USER" != "root" ]]; then
+            alias rider="nohup rider > /dev/null 2>&1 &"
+          fi
           ;;
         "gaming-rig")
-          alias steam="nohup steam > /dev/null 2>&1 &"
+          export EDITOR="nano"
+          export VISUAL="nano"
+          if [[ "$USER" != "root" ]]; then
+            alias steam="nohup steam > /dev/null 2>&1 &"
+          fi
           ;;
       esac
       
-      # Add ~/.local/bin to PATH
-      export PATH="$HOME/.local/bin:$PATH"
+      # Add ~/.local/bin to PATH (solo per utenti non root)
+      if [[ "$USER" != "root" ]]; then
+        export PATH="$HOME/.local/bin:$PATH"
+      fi
     '';
   };
 
@@ -160,7 +208,12 @@
     };
   };
 
-  programs.vim.defaultEditor = true;
+  # Editor di default
+  programs.nano.enable = true;
+  environment.variables = {
+    EDITOR = "nano";
+    VISUAL = "nano";
+  };
 
   # SSH
   services.openssh = {
@@ -199,6 +252,11 @@
     isNormalUser = true;
     description = "Filippo";
     extraGroups = [ "wheel" "networkmanager" ];
+    shell = pkgs.zsh;
+  };
+
+  # Configurazione utente root con ZSH
+  users.users.root = {
     shell = pkgs.zsh;
   };
 
