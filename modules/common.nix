@@ -37,15 +37,130 @@
     };
   };
 
-  # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
-  # Programmi essenziali
-  programs = {
-    zsh.enable = true;
-    git.enable = true;
-    vim.defaultEditor = true;
+  # ZSH configuration (comune a tutti gli host)
+  programs.zsh = {
+    enable = true;
+    autosuggestions.enable = true;
+    syntaxHighlighting.enable = true;
+    
+    ohMyZsh = {
+      enable = true;
+      theme = "agnoster";
+      plugins = [ 
+        "git"
+        "sudo"
+        "docker"
+        "docker-compose"
+        "kubectl"
+        "history-substring-search"
+        "colored-man-pages"
+        "command-not-found"
+      ];
+    };
+    
+    # Configurazioni shell comuni (equivalente a .zshrc condiviso)
+    interactiveShellInit = ''
+      # History settings
+      HISTSIZE=10000
+      SAVEHIST=10000
+      setopt SHARE_HISTORY
+      setopt HIST_VERIFY
+      setopt EXTENDED_HISTORY
+      setopt HIST_IGNORE_DUPS
+      setopt HIST_IGNORE_ALL_DUPS
+      setopt HIST_REDUCE_BLANKS
+      
+      # Prompt customization per agnoster
+      DEFAULT_USER="filippo"
+      
+      # Common aliases
+      alias ll="ls -la"
+      alias la="ls -A"
+      alias l="ls -CF"
+      alias ".."="cd .."
+      alias "..."="cd ../.."
+      alias grep="grep --color=auto"
+      alias df="df -h"
+      alias du="du -h"
+            
+      # NixOS specific
+      alias rebuild="sudo nixos-rebuild switch --flake /etc/nixos"
+      alias update="sudo nix flake update /etc/nixos"
+      
+      # Common functions
+      mkcd() { mkdir -p "$1" && cd "$1"; }
+      backup() { cp "$1" "$1.backup-$(date +%Y%m%d-%H%M%S)"; }
+      psg() { ps aux | grep -v grep | grep "$1"; }
+      
+      # Extract function
+      extract() {
+        if [ -f "$1" ]; then
+          case "$1" in
+            *.tar.bz2) tar xjf "$1" ;;
+            *.tar.gz) tar xzf "$1" ;;
+            *.bz2) bunzip2 "$1" ;;
+            *.rar) unrar x "$1" ;;
+            *.gz) gunzip "$1" ;;
+            *.tar) tar xf "$1" ;;
+            *.tbz2) tar xjf "$1" ;;
+            *.tgz) tar xzf "$1" ;;
+            *.zip) unzip "$1" ;;
+            *.Z) uncompress "$1" ;;
+            *.7z) 7z x "$1" ;;
+            *) echo "'$1' cannot be extracted via extract()" ;;
+          esac
+        else
+          echo "'$1' is not a valid file"
+        fi
+      }
+      
+      # Host-specific configurations
+      case "$(hostname)" in
+        "dev-server")
+          export DOCKER_HOST="unix:///var/run/docker.sock"
+          alias k="kubectl"
+          ;;
+        "work-laptop")
+          alias rider="nohup rider > /dev/null 2>&1 &"
+          ;;
+        "gaming-rig")
+          alias steam="nohup steam > /dev/null 2>&1 &"
+          ;;
+      esac
+      
+      # Add ~/.local/bin to PATH
+      export PATH="$HOME/.local/bin:$PATH"
+    '';
   };
+
+  # Git global configuration
+  programs.git = {
+    enable = true;
+    config = {
+      init.defaultBranch = "main";
+      pull.rebase = true;
+      push.autoSetupRemote = true;
+      user = {
+        name = "ildoc";
+        email = "il_doc@protonmail.com";
+      };
+      alias = {
+        st = "status";
+        ci = "commit";
+        br = "branch";
+        co = "checkout";
+        df = "diff";
+        lg = "log --oneline --graph --decorate --all";
+        unstage = "reset HEAD --";
+        last = "log -1 HEAD";
+        visual = "!gitk";
+      };
+    };
+  };
+
+  programs.vim.defaultEditor = true;
 
   # SSH
   services.openssh = {
@@ -56,7 +171,6 @@
     };
   };
 
-  # Firewall
   networking.firewall = {
     enable = true;
     allowedTCPPorts = [ 22 ];
@@ -64,25 +178,20 @@
 
   # Pacchetti di base
   environment.systemPackages = with pkgs; [
-    # Strumenti di base
     wget
     curl
     git
-    vim
     htop
     tree
     unzip
     zip
-    
-    # Network tools
     nmap
     tcpdump
-    
-    # System tools
     lsof
     strace
     file
     which
+    tree
   ];
 
   # Configurazione utente filippo
@@ -93,9 +202,6 @@
     shell = pkgs.zsh;
   };
 
-  # Sudo senza password per wheel
   security.sudo.wheelNeedsPassword = false;
-
-  # Sistema stabile
   system.stateVersion = "24.05";
 }

@@ -10,7 +10,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     
-    # VSCode Server per sviluppo remoto
     vscode-server = {
       url = "github:nix-community/nixos-vscode-server";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -21,7 +20,6 @@
     let
       system = "x86_64-linux";
       
-      # Overlay per accedere ai pacchetti unstable
       overlay-unstable = final: prev: {
         unstable = import nixpkgs-unstable {
           inherit system;
@@ -29,14 +27,24 @@
         };
       };
       
-      # Funzione helper per creare configurazioni
-      mkSystem = hostname: modules: nixpkgs.lib.nixosSystem {
+      # Sistema base senza Home Manager (per server)
+      mkSystemBase = hostname: modules: nixpkgs.lib.nixosSystem {
         inherit system;
         modules = [
           ({ config, pkgs, ... }: { nixpkgs.overlays = [ overlay-unstable ]; })
           ./hosts/${hostname}/configuration.nix
           ./modules/common.nix
-          ./users/filippo.nix
+          { networking.hostName = hostname; }
+        ] ++ modules;
+      };
+      
+      # Sistema con Home Manager (per desktop/laptop)
+      mkSystemWithHM = hostname: modules: nixpkgs.lib.nixosSystem {
+        inherit system;
+        modules = [
+          ({ config, pkgs, ... }: { nixpkgs.overlays = [ overlay-unstable ]; })
+          ./hosts/${hostname}/configuration.nix
+          ./modules/common.nix
           home-manager.nixosModules.home-manager
           {
             home-manager = {
@@ -51,21 +59,21 @@
     in
     {
       nixosConfigurations = {
-        # Cambia questi nomi come preferisci
-        dev-server = mkSystem "dev-server" [
+        # Server: solo NixOS, configurazione minimal
+        dev-server = mkSystemBase "dev-server" [
           ./modules/server.nix
           ./modules/development.nix
           vscode-server.nixosModules.default
         ];
 
-        # Laptop per lavoro
-        work-laptop = mkSystem "work-laptop" [
+        # Laptop: NixOS + Home Manager per GUI
+        work-laptop = mkSystemWithHM "work-laptop" [
           ./modules/desktop.nix
           ./modules/development.nix
         ];
 
-        # Desktop per gaming
-        gaming-rig = mkSystem "gaming-rig" [
+        # Desktop: NixOS + Home Manager per gaming
+        gaming-rig = mkSystemWithHM "gaming-rig" [
           ./modules/desktop.nix
           ./modules/gaming.nix
         ];
