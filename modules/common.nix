@@ -245,6 +245,7 @@
     file
     which
     tree
+    fastfetch
   ];
 
   # Configurazione utente filippo

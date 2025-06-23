@@ -13,6 +13,23 @@
     VISUAL = "nano";
   };
   
+  # Soluzione più semplice e affidabile per VS Code Server: nix-ld
+  programs.nix-ld = {
+    enable = true;
+    libraries = with pkgs; [
+      # Librerie necessarie per VS Code Server e le sue estensioni
+      stdenv.cc.cc
+      zlib
+      fuse3
+      icu
+      nss
+      openssl
+      curl
+      expat
+      # Aggiungi altre librerie se necessario
+    ];
+  };
+  
   # Pacchetti server
   environment.systemPackages = with pkgs; [
     kubectl
@@ -36,17 +53,6 @@
   # Kubernetes tools
   services.kubernetes = {
     roles = []; # Configurare secondo necessità
-  };
-  
-  # VS Code Server - configurazione dichiarativa
-  services.vscode-server = {
-    enable = true;
-    enableFHS = true; # Abilita FHS per compatibilità estensioni
-  };
-  
-  # Abilita il servizio automaticamente per l'utente filippo
-  systemd.user.services.auto-fix-vscode-server = {
-    wantedBy = [ "default.target" ];
   };
   
   # Firewall per server
