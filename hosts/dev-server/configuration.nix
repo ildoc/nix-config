@@ -8,10 +8,6 @@
   # Configurazioni specifiche per server
   networking.hostName = "dev-server";
   
-  # Boot loader
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-  
   # Disabilita servizi desktop non necessari
   services.xserver.enable = false;
   sound.enable = false;
