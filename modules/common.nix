@@ -20,7 +20,7 @@
 
   # Configurazione tastiera
   console = {
-    keyMap = "it";
+    # keyMap = "it";
     useXkbConfig = true;
   };
 
