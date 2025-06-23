@@ -1,0 +1,34 @@
+# Nix
+result
+result-*
+
+# Backup files
+*.bak
+*~
+.#*
+\#*#
+
+# OS generated
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.temp
+
+# Hardware configuration (uncomment if contains sensitive info)
+# hosts/*/hardware-configuration.nix
+
+# Logs
+*.log
