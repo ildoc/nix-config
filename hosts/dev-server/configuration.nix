@@ -8,6 +8,11 @@
   # Configurazioni specifiche per server
   networking.hostName = "dev-server";
   
+  boot.loader.grub = {
+    enable = true;
+    device = "/dev/sda";  # Installa GRUB sul disco principale
+  };
+
   # Disabilita servizi desktop non necessari
   services.xserver.enable = false;
   sound.enable = false;
