@@ -47,7 +47,7 @@
     
     ohMyZsh = {
       enable = true;
-      theme = "agnoster";
+      theme = "robbyrussell";
       plugins = [ 
         "git"
         "sudo"
