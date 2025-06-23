@@ -6,7 +6,7 @@
   ];
 
   # Configurazioni specifiche per laptop
-  networking.hostName = "laptop";
+  networking.hostName = "work-laptop";
   
   # Boot loader
   boot.loader.systemd-boot.enable = true;
