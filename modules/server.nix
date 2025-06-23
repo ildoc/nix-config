@@ -8,9 +8,6 @@
   
   # Pacchetti server
   environment.systemPackages = with pkgs; [
-    # Container orchestration
-    docker
-    docker-compose
     kubectl
     
     # Monitoring
@@ -25,20 +22,12 @@
     nano
     vim
   ];
-
-  # Docker
-  virtualisation.docker = {
-    enable = true;
-    enableOnBoot = true;
-  };
   
   # Kubernetes tools
   services.kubernetes = {
     roles = []; # Configurare secondo necessità
   };
   
-  # Utente nel gruppo docker
-  users.users.filippo.extraGroups = [ "docker" ];
   
   # VSCode Server per sviluppo remoto
   services.vscode-server.enable = true;

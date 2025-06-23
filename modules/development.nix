@@ -23,12 +23,14 @@
     
     # Version control
     git
-    gh # GitHub CLI
     
     # Network tools
     postman
     
-    # Containers (solo per laptop/desktop, non server)
+    # Container tools (su tutti gli host development)
+    docker
+    docker-compose
+    
   ] ++ (if config.networking.hostName != "dev-server" then [
     # IDE - solo su laptop/desktop
     (if config.networking.hostName == "work-laptop" then [
@@ -39,14 +41,12 @@
     ] else [])
   ] else []);
 
-  # Docker solo per sviluppo locale (non server)
+  # Docker su tutti gli host che usano development module
   virtualisation.docker = {
-    enable = (config.networking.hostName != "dev-server");
+    enable = true;  # Abilita sempre quando c'è development
     enableOnBoot = true;
   };
   
-  users.users.filippo.extraGroups = 
-    if config.networking.hostName != "dev-server" 
-    then [ "docker" ] 
-    else [];
+  # Aggiungi filippo al gruppo docker
+  users.users.filippo.extraGroups = [ "docker" ];
 }
