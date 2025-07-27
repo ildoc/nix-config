@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   # Configurazioni di base comuni a tutti gli host
@@ -22,6 +22,9 @@
   console = {
     useXkbConfig = true;
   };
+  
+  # Num Lock abilitato all'avvio per desktop
+  services.xserver.xkbOptions = lib.mkIf (config.services.xserver.enable) "numlock:on";
 
   # Nix settings ottimizzati
   nix = {
@@ -239,6 +242,9 @@
     
     # Kubernetes tools (disponibili su tutti gli host)
     kubectl
+  ] ++ lib.optionals config.services.xserver.enable [
+    # Package per Num Lock sui desktop
+    numlockx
   ];
 
   # Configurazione utente filippo

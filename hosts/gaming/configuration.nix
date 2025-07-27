@@ -139,4 +139,10 @@
   
   # Gruppo gaming per l'utente
   users.users.filippo.extraGroups = [ "gamemode" ];
+  
+  # Num Lock abilitato all'avvio
+  services.xserver.displayManager.sessionCommands = ''
+    ${pkgs.numlockx}/bin/numlockx on
+  '';
+}
 }

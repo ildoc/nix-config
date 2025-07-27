@@ -74,6 +74,11 @@
   programs.light.enable = true;
   users.users.filippo.extraGroups = [ "video" ];
   
+  # Num Lock abilitato all'avvio
+  services.xserver.displayManager.sessionCommands = ''
+    ${pkgs.numlockx}/bin/numlockx on
+  '';
+  
   # Thermal management
   services.thermald.enable = true;
   
