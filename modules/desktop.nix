@@ -13,10 +13,12 @@
       variant = "";
     };
     
-    # KDE Plasma invece di GNOME
-    displayManager.sddm.enable = true;
+    # KDE Plasma
     desktopManager.plasma5.enable = true;
   };
+  
+  # Display manager (separato da xserver)
+  services.displayManager.sddm.enable = true;
   
   # Audio
   sound.enable = true;
@@ -72,11 +74,11 @@
     gwenview # Image viewer KDE
     
     # Utilities generiche
-    dconf-editor
+    gnome.dconf-editor
   ];
 
-  # Configurazioni KDE specifiche
-  services.xserver.desktopManager.plasma5.excludePackages = with pkgs.libsForQt5; [
+  # Configurazioni KDE specifiche (nuova sintassi)
+  environment.plasma5.excludePackages = with pkgs.libsForQt5; [
     # Rimuovi app KDE non necessarie
     elisa # music player
     khelpcenter

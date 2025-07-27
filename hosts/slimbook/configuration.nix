@@ -31,7 +31,7 @@
   services.blueman.enable = true;
   
   # Touchpad
-  services.xserver.libinput.enable = true;
+  services.libinput.enable = true;
   
   # Backlight control
   programs.light.enable = true;
