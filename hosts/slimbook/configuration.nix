@@ -44,50 +44,50 @@
       DISK_IDLE_SECS_ON_AC = 0;
       DISK_IDLE_SECS_ON_BAT = 2;
       
-      # BLUETOOTH - Importante: non spegnere automaticamente il Bluetooth
       DEVICES_TO_DISABLE_ON_STARTUP = "wwan";
-      DEVICES_TO_ENABLE_ON_STARTUP = "bluetooth wifi";
+      DEVICES_TO_ENABLE_ON_STARTUP = "wifi";
     };
   };
   
-  # Configurazione Bluetooth migliorata
+  ## Configurazione Bluetooth corretta
   hardware.bluetooth = {
     enable = true;
-    powerOnBoot = true; # Cambiato da false a true
+    powerOnBoot = true;
     settings = {
       General = {
-        Enable = "Source,Sink,Media,Socket";
+        # Rimuovi le chiavi non supportate che causano errori
         Experimental = true;
-        # Aggiungi supporto per più codec
-        MultiProfile = "multiple";
-        # Migliora la compatibilità
         FastConnectable = true;
-        # Timeout per la scoperta
         DiscoverableTimeout = 0;
         PairableTimeout = 0;
       };
-      # Configurazione per l'audio Bluetooth
       Policy = {
         AutoEnable = true;
       };
     };
   };
   
-  # Blueman con configurazione estesa
+  # Firmware esplicito per hardware Bluetooth
+  hardware.enableRedistributableFirmware = true;
+  
+  # Blueman
   services.blueman.enable = true;
   
-  # Assicurati che i servizi Bluetooth siano avviati correttamente
+  # Ripristina il servizio bluetooth standard (senza debug)
   systemd.services.bluetooth = {
     serviceConfig = {
       ExecStart = [
-        ""  # Cancella il comando predefinito
-        "${pkgs.bluez}/libexec/bluetooth/bluetoothd --noplugin=sap"
+        ""  # Reset comando predefinito
+        "${pkgs.bluez}/libexec/bluetooth/bluetoothd"
       ];
     };
   };
   
-  # Servizi aggiuntivi per Bluetooth
-  services.dbus.enable = true;
+  # Pacchetti Bluetooth
+  environment.systemPackages = with pkgs; [
+    bluez
+    bluez-tools
+  ];
   
   # Touchpad con gestures
   services.libinput = {
