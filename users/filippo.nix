@@ -108,10 +108,7 @@
   # Home packages personali (non di sistema)
   home.packages = with pkgs; [
     # Utility personali
-    ripgrep
-    fd
     bat
-    exa
     
     # Development tools personali
     jq
