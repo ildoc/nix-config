@@ -49,13 +49,12 @@
     };
   };
   
-  ## Configurazione Bluetooth corretta
+  # Configurazione Bluetooth con fix firmware
   hardware.bluetooth = {
     enable = true;
     powerOnBoot = true;
     settings = {
       General = {
-        # Rimuovi le chiavi non supportate che causano errori
         Experimental = true;
         FastConnectable = true;
         DiscoverableTimeout = 0;
@@ -67,20 +66,43 @@
     };
   };
   
-  # Firmware esplicito per hardware Bluetooth
+  # Firmware completo per Bluetooth
   hardware.enableRedistributableFirmware = true;
+  
+  # Fix specifico per btusb e firmware loading
+  boot.extraModprobeConfig = ''
+    # Disabilita autosuspend per btusb
+    options btusb enable_autosuspend=0
+    # Forza il reset del controller all'avvio
+    options btusb reset=1
+  '';
+  
+  # Assicurati che i moduli siano caricati nell'ordine corretto
+  boot.kernelModules = [ "btusb" ];
   
   # Blueman
   services.blueman.enable = true;
   
-  # Ripristina il servizio bluetooth standard (senza debug)
-  systemd.services.bluetooth = {
+  # Servizio systemd personalizzato per inizializzazione Bluetooth
+  systemd.services.bluetooth-init = {
+    description = "Initialize Bluetooth Controller";
+    after = [ "bluetooth.service" ];
+    wantedBy = [ "multi-user.target" ];
     serviceConfig = {
-      ExecStart = [
-        ""  # Reset comando predefinito
-        "${pkgs.bluez}/libexec/bluetooth/bluetoothd"
-      ];
+      Type = "oneshot";
+      RemainAfterExit = true;
     };
+    script = ''
+      # Aspetta che il servizio bluetooth sia pronto
+      sleep 2
+      
+      # Forza l'inizializzazione del controller
+      ${pkgs.bluez}/bin/bluetoothctl power on || true
+      
+      # Aspetta e riprova se necessario
+      sleep 1
+      ${pkgs.bluez}/bin/bluetoothctl power on || true
+    '';
   };
   
   # Pacchetti Bluetooth
