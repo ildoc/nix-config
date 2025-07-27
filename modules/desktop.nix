@@ -65,6 +65,7 @@
     
     # Multimedia
     vlc
+    spotify
     
     # KDE utilities (Konsole è già incluso in KDE)
     kate # Editor di testo KDE
@@ -86,4 +87,7 @@
   
   # Abilita alcune features KDE
   programs.kdeconnect.enable = true;
+
+  # Spotify sync
+  networking.firewall.allowedTCPPorts = [ 57621 ];
 }

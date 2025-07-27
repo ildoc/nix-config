@@ -48,7 +48,7 @@
       
       # Funzioni personali aggiuntive
       # Quick cd to common directories
-      alias nixconf="cd ~/nixos-config"
+      alias nixconf="cd ~/nix-config"
       alias projects="cd ~/Projects"
       alias downloads="cd ~/Downloads"
       
