@@ -38,7 +38,7 @@
         ] ++ modules;
       };
       
-      # Sistema con Home Manager (per desktop/laptop)
+      # Sistema con Home Manager (per desktop/slimbook)
       mkSystemWithHM = hostname: modules: nixpkgs.lib.nixosSystem {
         inherit system;
         modules = [
@@ -66,8 +66,8 @@
           vscode-server.nixosModules.default
         ];
 
-        # Laptop: NixOS + Home Manager per GUI
-        laptop = mkSystemWithHM "laptop" [
+        # slimbook: NixOS + Home Manager per GUI
+        slimbook = mkSystemWithHM "slimbook" [
           ./modules/desktop.nix
           ./modules/development.nix
         ];

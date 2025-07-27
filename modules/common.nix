@@ -129,7 +129,7 @@
           export EDITOR="nano"
           export VISUAL="nano"
           ;;
-        "laptop")
+        "slimbook")
           export KUBE_EDITOR="nano"
           export EDITOR="nano"
           export VISUAL="nano"

@@ -10,6 +10,9 @@
     python3Packages.pip
     go
     
+    # .NET development (disponibile su tutti gli host development)
+    dotnet-sdk_8
+    
     # Database tools
     postgresql
     sqlite
@@ -31,16 +34,14 @@
     # Development utilities
     jq
     yq
-
-    #IDE
-    vscode
     
   ] ++ (
     # IDE - condizionale per host
-    if config.networking.hostName == "laptop" then [
+    if config.networking.hostName == "slimbook" then [
       unstable.jetbrains.rider
+      vscode
     ] else if config.networking.hostName == "gaming" then [
-      
+      vscode
     ] else []
   );
 

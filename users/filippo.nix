@@ -87,8 +87,8 @@
       
       # Host-specific personalizations
       case "$(hostname)" in
-        "laptop")
-          # Laptop-specific user aliases
+        "slimbook")
+          # slimbook-specific user aliases
           alias code="code-oss"
           ;;
         "gaming")
