@@ -82,11 +82,11 @@
       alias du="du -h"
             
       # NixOS specific
-      alias rebuild="sudo nixos-rebuild switch --flake ~/nixos-config"
-      alias rebuild-test="sudo nixos-rebuild test --flake ~/nixos-config"
-      alias rebuild-boot="sudo nixos-rebuild boot --flake ~/nixos-config"
-      alias rebuild-dry="sudo nixos-rebuild dry-run --flake ~/nixos-config"
-      alias flake-update="sudo nix flake update ~/nixos-config"
+      alias rebuild="sudo nixos-rebuild switch --flake"
+      alias rebuild-test="sudo nixos-rebuild test --flake"
+      alias rebuild-boot="sudo nixos-rebuild boot --flake"
+      alias rebuild-dry="sudo nixos-rebuild dry-run --flake"
+      alias flake-update="sudo nix flake update"
       alias gc-full="sudo nix-collect-garbage -d && nix-store --gc"
       
       # Kubernetes shortcuts (se disponibile)
