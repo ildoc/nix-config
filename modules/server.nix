@@ -13,7 +13,7 @@
     VISUAL = "nano";
   };
   
-  # Soluzione più semplice e affidabile per VS Code Server: nix-ld
+  # Soluzione per VS Code Server: nix-ld
   programs.nix-ld = {
     enable = true;
     libraries = with pkgs; [
@@ -26,14 +26,11 @@
       openssl
       curl
       expat
-      # Aggiungi altre librerie se necessario
     ];
   };
   
-  # Pacchetti server
+  # Pacchetti server (kubectl già incluso in common.nix)
   environment.systemPackages = with pkgs; [
-    kubectl
-    
     # Monitoring
     htop
     iotop
@@ -41,25 +38,38 @@
     
     # Network tools
     bind # per dig, nslookup
+    traceroute
     
     # Text editors
     nano
-    vim
     
     # Node.js per compatibilità VS Code Server
     nodejs_20
+    
+    # Server utilities
+    rsync
+    screen
+    tmux
   ];
-  
-  # Kubernetes tools
-  services.kubernetes = {
-    roles = []; # Configurare secondo necessità
-  };
   
   # Firewall per server
   networking.firewall = {
     enable = true;
     allowedTCPPorts = [ 
       22    # SSH
+      80    # HTTP
+      443   # HTTPS
     ];
   };
+  
+  # Ottimizzazioni server
+  services.logind.extraConfig = ''
+    HandlePowerKey=ignore
+    HandleSuspendKey=ignore
+    HandleHibernateKey=ignore
+  '';
+  
+  # Disable unnecessary services for server
+  sound.enable = false;
+  hardware.pulseaudio.enable = false;
 }

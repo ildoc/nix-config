@@ -13,9 +13,9 @@
       variant = "";
     };
     
-    # GNOME
-    displayManager.gdm.enable = true;
-    desktopManager.gnome.enable = true;
+    # KDE Plasma invece di GNOME
+    displayManager.sddm.enable = true;
+    desktopManager.plasma5.enable = true;
   };
   
   # Audio
@@ -31,7 +31,6 @@
 
   # Bluetooth
   hardware.bluetooth.enable = true;
-  services.blueman.enable = true;
 
   # Printing
   services.printing.enable = true;
@@ -49,6 +48,9 @@
     fira-code
     fira-code-symbols
     font-awesome
+    # Font per KDE
+    source-code-pro
+    source-sans-pro
   ];
 
   # Pacchetti desktop
@@ -56,36 +58,30 @@
     # Browser
     firefox
     
-    # File manager
-    nautilus
-    
     # Editor di testo
     vscode
     
     # Multimedia
     vlc
     
-    # Utilities
-    gnome.gnome-tweaks
-    dconf-editor
+    # KDE utilities (Konsole è già incluso in KDE)
+    kate # Editor di testo KDE
+    dolphin # File manager KDE
+    spectacle # Screenshot tool KDE
+    okular # PDF viewer KDE
+    gwenview # Image viewer KDE
     
-    # Terminal
-    alacritty
+    # Utilities generiche
+    dconf-editor
   ];
 
-  # Exclude some GNOME packages
-  environment.gnome.excludePackages = (with pkgs; [
-    gnome-photos
-    gnome-tour
-  ]) ++ (with pkgs.gnome; [
-    cheese # webcam tool
-    gnome-music
-    epiphany # web browser
-    geary # email reader
-    gnome-characters
-    tali # poker game
-    iagno # go game
-    hitori # sudoku game
-    atomix # puzzle game
-  ]);
+  # Configurazioni KDE specifiche
+  services.xserver.desktopManager.plasma5.excludePackages = with pkgs.libsForQt5; [
+    # Rimuovi app KDE non necessarie
+    elisa # music player
+    khelpcenter
+  ];
+  
+  # Abilita alcune features KDE
+  programs.kdeconnect.enable = true;
 }

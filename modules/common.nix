@@ -20,7 +20,6 @@
 
   # Configurazione tastiera
   console = {
-    # keyMap = "it";
     useXkbConfig = true;
   };
 
@@ -39,7 +38,7 @@
 
   nixpkgs.config.allowUnfree = true;
 
-  # ZSH configuration (comune a tutti gli host e per tutti gli utenti)
+  # ZSH configuration (sistema - configurazione base per tutti gli utenti)
   programs.zsh = {
     enable = true;
     autosuggestions.enable = true;
@@ -60,7 +59,7 @@
       ];
     };
     
-    # Configurazioni shell comuni (equivalente a .zshrc condiviso)
+    # Configurazioni shell comuni
     interactiveShellInit = ''
       # History settings
       HISTSIZE=10000
@@ -71,12 +70,6 @@
       setopt HIST_IGNORE_DUPS
       setopt HIST_IGNORE_ALL_DUPS
       setopt HIST_REDUCE_BLANKS
-      
-      # Prompt customization per agnoster
-      # Per root non impostare DEFAULT_USER per mostrare sempre il nome utente
-      if [[ "$USER" != "root" ]]; then
-        DEFAULT_USER="filippo"
-      fi
       
       # Common aliases
       alias ll="ls -la"
@@ -89,8 +82,12 @@
       alias du="du -h"
             
       # NixOS specific
-      alias rebuild="sudo nixos-rebuild switch --flake /etc/nixos"
-      alias update="sudo nix flake update /etc/nixos"
+      alias rebuild="sudo nixos-rebuild switch --flake ~/nixos-config"
+      alias rebuild-test="sudo nixos-rebuild test --flake ~/nixos-config"
+      alias rebuild-boot="sudo nixos-rebuild boot --flake ~/nixos-config"
+      alias rebuild-dry="sudo nixos-rebuild dry-run --flake ~/nixos-config"
+      alias flake-update="sudo nix flake update ~/nixos-config"
+      alias gc-full="sudo nix-collect-garbage -d && nix-store --gc"
       
       # Kubernetes shortcuts (se disponibile)
       if command -v kubectl >/dev/null 2>&1; then
@@ -153,32 +150,12 @@
       if [[ "$USER" != "root" ]]; then
         export PATH="$HOME/.local/bin:$PATH"
       fi
+      
+      # Prompt customization
+      if [[ "$USER" != "root" ]]; then
+        DEFAULT_USER="filippo"
+      fi
     '';
-  };
-
-  # Git global configuration
-  programs.git = {
-    enable = true;
-    config = {
-      init.defaultBranch = "main";
-      pull.rebase = true;
-      push.autoSetupRemote = true;
-      user = {
-        name = "ildoc";
-        email = "il_doc@protonmail.com";
-      };
-      alias = {
-        st = "status";
-        ci = "commit";
-        br = "branch";
-        co = "checkout";
-        df = "diff";
-        lg = "log --oneline --graph --decorate --all";
-        unstage = "reset HEAD --";
-        last = "log -1 HEAD";
-        visual = "!gitk";
-      };
-    };
   };
 
   # Editor di default
@@ -202,7 +179,7 @@
     allowedTCPPorts = [ 22 ];
   };
 
-  # Pacchetti di base
+  # Pacchetti di base comuni
   environment.systemPackages = with pkgs; [
     wget
     curl
@@ -217,8 +194,10 @@
     strace
     file
     which
-    tree
     fastfetch
+    
+    # Kubernetes tools (disponibili su tutti gli host)
+    kubectl
   ];
 
   # Configurazione utente filippo

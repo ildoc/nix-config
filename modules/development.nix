@@ -10,7 +10,7 @@
     python3Packages.pip
     go
     
-    # Database
+    # Database tools
     postgresql
     sqlite
     
@@ -19,32 +19,44 @@
     cmake
     gcc
     
-    # Version control
-    git
-    
-    # Network tools
+    # Network/API tools
     postman
+    curl
+    httpie
     
-    # Container tools (su tutti gli host development)
+    # Container tools
     docker
     docker-compose
     
-  ] ++ (if config.networking.hostName != "dev-server" then [
-    # IDE - solo su laptop/desktop
-    (if config.networking.hostName == "laptop" then [
-      unstable.jetbrains.rider
-      vscode
-    ] else if config.networking.hostName == "gaming" then [
-      vscode
-    ] else [])
-  ] else []);
+    # Development utilities
+    jq
+    yq
 
-  # Docker su tutti gli host che usano development module
+    #IDE
+    vscode
+    
+  ] ++ (
+    # IDE - condizionale per host
+    if config.networking.hostName == "laptop" then [
+      unstable.jetbrains.rider
+    ] else if config.networking.hostName == "gaming" then [
+      
+    ] else []
+  );
+
+  # Docker configuration
   virtualisation.docker = {
-    enable = true;  # Abilita sempre quando c'è development
+    enable = true;
     enableOnBoot = true;
   };
   
   # Aggiungi filippo al gruppo docker
   users.users.filippo.extraGroups = [ "docker" ];
+  
+  # Development environment variables
+  environment.variables = {
+    # Per development
+    DOCKER_BUILDKIT = "1";
+    COMPOSE_DOCKER_CLI_BUILD = "1";
+  };
 }
