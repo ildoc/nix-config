@@ -89,7 +89,7 @@
       case "$(hostname)" in
         "slimbook")
           # slimbook-specific user aliases
-          alias code="code-oss"
+          # alias code="code-oss"
           ;;
         "gaming")
           # Gaming-specific user aliases
