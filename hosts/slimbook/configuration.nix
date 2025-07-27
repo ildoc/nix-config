@@ -12,7 +12,10 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   
-  # Power management per slimbook
+  # Disabilita power-profiles-daemon per evitare conflitto con TLP
+  services.power-profiles-daemon.enable = false;
+  
+  # Power management per laptop
   services.tlp = {
     enable = true;
     settings = {
