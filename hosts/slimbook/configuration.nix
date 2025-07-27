@@ -89,9 +89,6 @@
   # Servizi aggiuntivi per Bluetooth
   services.dbus.enable = true;
   
-  # Gruppo bluetooth per l'utente
-  users.users.filippo.extraGroups = [ "bluetooth" ];
-  
   # Touchpad con gestures
   services.libinput = {
     enable = true;
@@ -105,7 +102,9 @@
   
   # Backlight control
   programs.light.enable = true;
-  users.users.filippo.extraGroups = [ "video" ];
+  
+  # Gruppi aggiuntivi per l'utente filippo (bluetooth e video)
+  users.users.filippo.extraGroups = [ "bluetooth" "video" ];
   
   # Num Lock abilitato all'avvio
   services.xserver.displayManager.sessionCommands = ''
