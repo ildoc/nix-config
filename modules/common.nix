@@ -24,7 +24,7 @@
   };
   
   # Num Lock abilitato all'avvio per desktop
-  services.xserver.xkbOptions = lib.mkIf (config.services.xserver.enable) "numlock:on";
+  services.xserver.xkb.options = lib.mkIf (config.services.xserver.enable) "numlock:on";
 
   # Nix settings ottimizzati
   nix = {

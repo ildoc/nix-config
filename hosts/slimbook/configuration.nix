@@ -43,21 +43,54 @@
       # Dischi
       DISK_IDLE_SECS_ON_AC = 0;
       DISK_IDLE_SECS_ON_BAT = 2;
+      
+      # BLUETOOTH - Importante: non spegnere automaticamente il Bluetooth
+      DEVICES_TO_DISABLE_ON_STARTUP = "wwan";
+      DEVICES_TO_ENABLE_ON_STARTUP = "bluetooth wifi";
     };
   };
   
-  # Bluetooth ottimizzato
+  # Configurazione Bluetooth migliorata
   hardware.bluetooth = {
     enable = true;
-    powerOnBoot = false; # Risparmia batteria
+    powerOnBoot = true; # Cambiato da false a true
     settings = {
       General = {
         Enable = "Source,Sink,Media,Socket";
         Experimental = true;
+        # Aggiungi supporto per più codec
+        MultiProfile = "multiple";
+        # Migliora la compatibilità
+        FastConnectable = true;
+        # Timeout per la scoperta
+        DiscoverableTimeout = 0;
+        PairableTimeout = 0;
+      };
+      # Configurazione per l'audio Bluetooth
+      Policy = {
+        AutoEnable = true;
       };
     };
   };
+  
+  # Blueman con configurazione estesa
   services.blueman.enable = true;
+  
+  # Assicurati che i servizi Bluetooth siano avviati correttamente
+  systemd.services.bluetooth = {
+    serviceConfig = {
+      ExecStart = [
+        ""  # Cancella il comando predefinito
+        "${pkgs.bluez}/libexec/bluetooth/bluetoothd --noplugin=sap"
+      ];
+    };
+  };
+  
+  # Servizi aggiuntivi per Bluetooth
+  services.dbus.enable = true;
+  
+  # Gruppo bluetooth per l'utente
+  users.users.filippo.extraGroups = [ "bluetooth" ];
   
   # Touchpad con gestures
   services.libinput = {
