@@ -23,17 +23,46 @@
     useXkbConfig = true;
   };
 
-  # Nix settings
+  # Nix settings ottimizzati
   nix = {
     settings = {
       experimental-features = [ "nix-command" "flakes" ];
       auto-optimise-store = true;
+      # Migliora le performance di build
+      max-jobs = "auto";
+      cores = 0; # usa tutti i core disponibili
+      # Cache substituters
+      substituters = [
+        "https://cache.nixos.org/"
+        "https://nix-community.cachix.org"
+      ];
+      trusted-public-keys = [
+        "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+        "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      ];
     };
+    
+    # Garbage collection più intelligente
     gc = {
       automatic = true;
-      dates = "weekly";
+      dates = "daily";
       options = "--delete-older-than 7d";
+      # Mantieni almeno alcune generazioni
+      persistent = true;
     };
+    
+    # Ottimizzazioni per il store
+    optimise = {
+      automatic = true;
+      dates = [ "weekly" ];
+    };
+    
+    # Configurazioni avanzate
+    extraOptions = ''
+      # Mantieni un po' di spazio libero
+      max-free = ${toString (1024 * 1024 * 1024 * 5)} # 5GB
+      min-free = ${toString (1024 * 1024 * 1024 * 1)} # 1GB
+    '';
   };
 
   nixpkgs.config.allowUnfree = true;
@@ -81,12 +110,15 @@
       alias df="df -h"
       alias du="du -h"
             
-      # NixOS specific
-      alias rebuild="sudo nixos-rebuild switch --flake"
-      alias rebuild-test="sudo nixos-rebuild test --flake"
-      alias rebuild-boot="sudo nixos-rebuild boot --flake"
-      alias rebuild-dry="sudo nixos-rebuild dry-run --flake"
-      alias flake-update="sudo nix flake update"
+      # NixOS specific - ora con hostname dinamico
+      HOSTNAME=$(hostname)
+      
+      # NixOS aliases specifici per host
+      alias rebuild="sudo nixos-rebuild switch --flake /etc/nixos#$HOSTNAME"
+      alias rebuild-test="sudo nixos-rebuild test --flake /etc/nixos#$HOSTNAME"
+      alias rebuild-boot="sudo nixos-rebuild boot --flake /etc/nixos#$HOSTNAME"
+      alias rebuild-dry="sudo nixos-rebuild dry-run --flake /etc/nixos#$HOSTNAME"
+      alias flake-update="sudo nix flake update /etc/nixos"
       alias gc-full="sudo nix-collect-garbage -d && nix-store --gc"
       
       # Kubernetes shortcuts (se disponibile)
@@ -122,7 +154,7 @@
       }
       
       # Host-specific configurations
-      case "$(hostname)" in
+      case "$HOSTNAME" in
         "dev-server")
           export DOCKER_HOST="unix:///var/run/docker.sock"
           export KUBE_EDITOR="nano"
@@ -165,12 +197,17 @@
     VISUAL = "nano";
   };
 
-  # SSH
+  # SSH ottimizzato
   services.openssh = {
     enable = true;
     settings = {
       PasswordAuthentication = true;
       PermitRootLogin = "no";
+      # Ottimizzazioni di sicurezza
+      PubkeyAuthentication = true;
+      MaxAuthTries = 3;
+      ClientAliveInterval = 300;
+      ClientAliveCountMax = 2;
     };
   };
 
@@ -195,6 +232,10 @@
     file
     which
     fastfetch
+    
+    # Tools per il troubleshooting
+    pciutils
+    usbutils
     
     # Kubernetes tools (disponibili su tutti gli host)
     kubectl

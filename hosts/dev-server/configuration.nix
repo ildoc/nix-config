@@ -25,9 +25,26 @@
     HandleHibernateKey=ignore
   '';
   
-  # Firewall più restrittivo
+  # Firewall per server con porte development
   networking.firewall = {
     enable = true;
-    allowedTCPPorts = [ 22 80 443 ]; # SSH, HTTP, HTTPS
+    allowedTCPPorts = [ 
+      22    # SSH
+      80    # HTTP
+      443   # HTTPS
+      3000  # Dev server comune
+      8080  # Dev server alternativo
+    ];
   };
+  
+  # Monitoraggio del server (opzionale)
+  # services.netdata = {
+  #   enable = true;
+  #   config = {
+  #     global = {
+  #       "default port" = "19999";
+  #       "bind to" = "localhost";
+  #     };
+  #   };
+  # };
 }
