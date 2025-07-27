@@ -49,78 +49,89 @@
     };
   };
   
-  # Configurazione Bluetooth con fix firmware
+  # ======================================
+  # Configurazione Bluetooth con firmware completo
   hardware.bluetooth = {
     enable = true;
     powerOnBoot = true;
     settings = {
       General = {
         Experimental = true;
-        FastConnectable = true;
-        DiscoverableTimeout = 0;
-        PairableTimeout = 0;
-      };
-      Policy = {
-        AutoEnable = true;
       };
     };
   };
   
-  # Firmware completo per Bluetooth
+  # Firmware completo - MOLTO IMPORTANTE
   hardware.enableRedistributableFirmware = true;
   
-  # Fix specifico per btusb e firmware loading
+  # Pacchetti firmware aggiuntivi
+  environment.systemPackages = with pkgs; [
+    bluez
+    bluez-tools
+    # Firmware aggiuntivi
+    linux-firmware
+  ];
+  
+  # Fix modprobe per btusb
   boot.extraModprobeConfig = ''
-    # Disabilita autosuspend per btusb
+    # Disabilita autosuspend
     options btusb enable_autosuspend=0
-    # Forza il reset del controller all'avvio
+    # Forza reset
     options btusb reset=1
+    # Debug per vedere cosa succede
+    options btusb dyndbg=+p
   '';
   
-  # Assicurati che i moduli siano caricati nell'ordine corretto
-  boot.kernelModules = [ "btusb" ];
+  # Assicurati che tutti i moduli BT siano disponibili
+  boot.kernelModules = [ "btusb" "btrtl" "btintel" "btbcm" "btmtk" ];
   
-  # Blueman
-  services.blueman.enable = true;
-  
-  # Servizio systemd personalizzato per inizializzazione Bluetooth
-  systemd.services.bluetooth-init = {
-    description = "Initialize Bluetooth Controller";
-    after = [ "bluetooth.service" ];
-    wantedBy = [ "multi-user.target" ];
+  # Servizio personalizzato per forzare l'inizializzazione
+  systemd.services.bluetooth-controller-init = {
+    description = "Force Bluetooth Controller Initialization";
+    after = [ "bluetooth.service" "sys-subsystem-bluetooth-devices-hci0.device" ];
+    wants = [ "sys-subsystem-bluetooth-devices-hci0.device" ];
+    wantedBy = [ "bluetooth.target" ];
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
+      Restart = "on-failure";
+      RestartSec = "5s";
     };
     script = ''
-      # Aspetta che il servizio bluetooth sia pronto
-      sleep 2
+      # Aspetta che il dispositivo sia disponibile
+      for i in {1..30}; do
+        if [ -e /sys/class/bluetooth/hci0 ]; then
+          echo "Controller hci0 trovato"
+          break
+        fi
+        echo "Aspettando controller hci0... tentativo $i"
+        sleep 1
+      done
       
-      # Forza l'inizializzazione del controller
+      # Usa hciconfig per forzare l'attivazione
+      if command -v hciconfig >/dev/null 2>&1; then
+        echo "Attivando controller con hciconfig..."
+        hciconfig hci0 up || true
+        sleep 2
+        hciconfig hci0 reset || true
+        sleep 2
+        hciconfig hci0 up || true
+      fi
+      
+      # Usa bluetoothctl come backup
+      echo "Attivando controller con bluetoothctl..."
       ${pkgs.bluez}/bin/bluetoothctl power on || true
-      
-      # Aspetta e riprova se necessario
+      sleep 2
+      ${pkgs.bluez}/bin/bluetoothctl power off || true
       sleep 1
       ${pkgs.bluez}/bin/bluetoothctl power on || true
     '';
   };
-  
-  # Pacchetti Bluetooth
-  environment.systemPackages = with pkgs; [
-    bluez
-    bluez-tools
-  ];
-  
-  # Touchpad con gestures
-  services.libinput = {
-    enable = true;
-    touchpad = {
-      tapping = true;
-      naturalScrolling = true;
-      middleEmulation = true;
-      disableWhileTyping = true;
-    };
-  };
+
+  # Blueman
+  services.blueman.enable = true;
+
+  # ======================================
   
   # Backlight control
   programs.light.enable = true;
