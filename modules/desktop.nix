@@ -60,7 +60,7 @@
     nautilus
     
     # Editor di testo
-    gedit
+    vscode
     
     # Multimedia
     vlc

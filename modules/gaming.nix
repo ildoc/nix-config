@@ -6,8 +6,6 @@
   # Steam
   programs.steam = {
     enable = true;
-    remotePlay.openFirewall = true;
-    dedicatedServer.openFirewall = true;
   };
 
   # Hardware accelerazione
@@ -40,16 +38,4 @@
 
   # Gaming optimizations
   programs.gamemode.enable = true;
-  
-  # Firewall per gaming
-  networking.firewall = {
-    allowedTCPPorts = [ 
-      27036 # Steam Remote Play
-      27037 # Steam Remote Play
-    ];
-    allowedUDPPorts = [
-      27031 # Steam Remote Play
-      27036 # Steam Remote Play
-    ];
-  };
 }

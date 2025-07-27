@@ -9,8 +9,6 @@
     python3
     python3Packages.pip
     go
-    rustc
-    cargo
     
     # Database
     postgresql
@@ -33,10 +31,10 @@
     
   ] ++ (if config.networking.hostName != "dev-server" then [
     # IDE - solo su laptop/desktop
-    (if config.networking.hostName == "work-laptop" then [
+    (if config.networking.hostName == "laptop" then [
       unstable.jetbrains.rider
       vscode
-    ] else if config.networking.hostName == "gaming-rig" then [
+    ] else if config.networking.hostName == "gaming" then [
       vscode
     ] else [])
   ] else []);

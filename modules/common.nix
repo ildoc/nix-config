@@ -92,37 +92,9 @@
       alias rebuild="sudo nixos-rebuild switch --flake /etc/nixos"
       alias update="sudo nix flake update /etc/nixos"
       
-      # Git aliases
-      alias gs="git status"
-      alias ga="git add"
-      alias gc="git commit"
-      alias gp="git push"
-      alias gl="git log --oneline --graph"
-      alias gd="git diff"
-      alias gco="git checkout"
-      alias gcb="git checkout -b"
-      alias gm="git merge"
-      alias gr="git rebase"
-      alias gst="git stash"
-      alias gstp="git stash pop"
-      
-      # Docker shortcuts (se disponibile)
-      if command -v docker >/dev/null 2>&1; then
-        alias dps="docker ps"
-        alias dpa="docker ps -a"
-        alias di="docker images"
-        alias dc="docker-compose"
-        alias dcup="docker-compose up -d"
-        alias dcdown="docker-compose down"
-        alias dclogs="docker-compose logs -f"
-      fi
-      
       # Kubernetes shortcuts (se disponibile)
       if command -v kubectl >/dev/null 2>&1; then
         alias k="kubectl"
-        alias kgp="kubectl get pods"
-        alias kgs="kubectl get services"
-        alias kgd="kubectl get deployments"
       fi
       
       # Common functions
@@ -160,14 +132,15 @@
           export EDITOR="nano"
           export VISUAL="nano"
           ;;
-        "work-laptop")
+        "laptop")
+          export KUBE_EDITOR="nano"
           export EDITOR="nano"
           export VISUAL="nano"
           if [[ "$USER" != "root" ]]; then
             alias rider="nohup rider > /dev/null 2>&1 &"
           fi
           ;;
-        "gaming-rig")
+        "gaming")
           export EDITOR="nano"
           export VISUAL="nano"
           if [[ "$USER" != "root" ]]; then

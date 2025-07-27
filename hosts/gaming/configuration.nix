@@ -6,7 +6,7 @@
   ];
 
   # Configurazioni specifiche per desktop
-  networking.hostName = "gaming-rig";
+  networking.hostName = "gaming";
   
   # Boot loader
   boot.loader.systemd-boot.enable = true;

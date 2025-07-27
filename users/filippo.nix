@@ -22,14 +22,6 @@
       ".." = "cd ..";
       "..." = "cd ../..";
       
-      # Git shortcuts
-      gs = "git status";
-      ga = "git add";
-      gc = "git commit";
-      gp = "git push";
-      gl = "git log --oneline --graph";
-      gd = "git diff";
-      
       # Utilities
       grep = "grep --color=auto";
       df = "df -h";
@@ -38,17 +30,12 @@
       # NixOS specific
       rebuild = "sudo nixos-rebuild switch --flake /etc/nixos";
       update = "sudo nix flake update /etc/nixos";
-      
-      # Docker shortcuts (solo se docker è disponibile)
-      dps = "docker ps";
-      dpa = "docker ps -a";
-      di = "docker images";
-      dc = "docker-compose";
+
     };
     
     # Variabili d'ambiente
     sessionVariables = {
-      EDITOR = "vim";
+      EDITOR = "nano";
       BROWSER = "firefox";
       TERMINAL = "alacritty";
     };
@@ -122,22 +109,6 @@
       
       # Kubernetes shortcuts
       alias k="kubectl"
-      alias kgp="kubectl get pods"
-      alias kgs="kubectl get services"
-      alias kgd="kubectl get deployments"
-      
-      # Docker shortcuts
-      alias dcup="docker-compose up -d"
-      alias dcdown="docker-compose down"
-      alias dclogs="docker-compose logs -f"
-      
-      # Git shortcuts avanzati
-      alias gco="git checkout"
-      alias gcb="git checkout -b"
-      alias gm="git merge"
-      alias gr="git rebase"
-      alias gst="git stash"
-      alias gstp="git stash pop"
       
       # Prompt customization per agnoster
       DEFAULT_USER="filippo"
@@ -151,11 +122,11 @@
           # Configurazioni specifiche per server
           export DOCKER_HOST="unix:///var/run/docker.sock"
           ;;
-        "work-laptop")
+        "laptop")
           # Configurazioni specifiche per laptop
           alias rider="nohup rider > /dev/null 2>&1 &"
           ;;
-        "gaming-rig")
+        "gaming")
           # Configurazioni specifiche per desktop
           alias steam="nohup steam > /dev/null 2>&1 &"
           ;;
@@ -172,20 +143,7 @@
     extraConfig = {
       init.defaultBranch = "main";
       pull.rebase = true;
-      push.autoSetupRemote = true;
-      
-      # Alias Git
-      alias = {
-        st = "status";
-        ci = "commit";
-        br = "branch";
-        co = "checkout";
-        df = "diff";
-        lg = "log --oneline --graph --decorate --all";
-        unstage = "reset HEAD --";
-        last = "log -1 HEAD";
-        visual = "!gitk";
-      };
+      push.autoSetupRemote = true;      
     };
   };
 

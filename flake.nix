@@ -67,13 +67,13 @@
         ];
 
         # Laptop: NixOS + Home Manager per GUI
-        work-laptop = mkSystemWithHM "work-laptop" [
+        laptop = mkSystemWithHM "laptop" [
           ./modules/desktop.nix
           ./modules/development.nix
         ];
 
         # Desktop: NixOS + Home Manager per gaming
-        gaming-rig = mkSystemWithHM "gaming-rig" [
+        gaming = mkSystemWithHM "gaming" [
           ./modules/desktop.nix
           ./modules/gaming.nix
         ];
