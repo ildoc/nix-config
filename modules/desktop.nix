@@ -57,6 +57,9 @@
 
   # Pacchetti desktop
   environment.systemPackages = with pkgs; [
+    # Messaggistica
+    telegram-desktop
+
     # Browser
     firefox
     
