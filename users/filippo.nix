@@ -38,7 +38,7 @@
     enable = true;
     
     # Configurazioni aggiuntive personali
-    initExtra = ''
+    initContent = ''
       # Personalizzazioni utente specifiche
       
       # Tema agnoster per l'utente (sistema usa robbyrussell)

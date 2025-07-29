@@ -16,7 +16,7 @@
   # Disabilita servizi desktop non necessari
   services.xserver.enable = false;
   sound.enable = false;
-  hardware.pulseaudio.enable = false;
+  services.pulseaudio.enable = false;
   
   # Ottimizzazioni per server
   services.logind.extraConfig = ''

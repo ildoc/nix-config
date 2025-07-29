@@ -71,5 +71,5 @@
   
   # Disable unnecessary services for server
   sound.enable = false;
-  hardware.pulseaudio.enable = false;
+  services.pulseaudio.enable = false;
 }
