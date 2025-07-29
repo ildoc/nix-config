@@ -2,11 +2,11 @@
   description = "Configurazione NixOS multi-host di Filippo";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";  # Torna temporaneamente a 24.11
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.05";  # Anche home-manager
+      url = "github:nix-community/home-manager/release-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     
@@ -66,7 +66,7 @@
           vscode-server.nixosModules.default
         ];
 
-        # slimbook: NixOS + Home Manager per GUI
+        # slimbook: NixOS + Home Manager per GUI - SEMPLIFICATO
         slimbook = mkSystemWithHM "slimbook" [
           ./modules/desktop.nix
           ./modules/development.nix

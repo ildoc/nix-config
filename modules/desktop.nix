@@ -1,7 +1,7 @@
 { config, pkgs, ... }:
 
 {
-  # Configurazione desktop environment
+  # Configurazione desktop environment aggiornata per NixOS 25.05
   
   # X11 e desktop
   services.xserver = {
@@ -11,21 +11,23 @@
     xkb = {
       layout = "it";
       variant = "";
+      # Num Lock abilitato (integrato con xkb)
+      options = "numlock:on";
     };
   };
   
-  # KDE Plasma 6 (aggiornato da Plasma 5)
+  # KDE Plasma 6
   services.desktopManager.plasma6.enable = true;
   
-  # Display manager (separato da xserver)
+  # Display manager
   services.displayManager = {
     sddm = {
       enable = true;
-      wayland.enable = true; # Abilita Wayland per SDDM
+      wayland.enable = true;
     };
   };
   
-  # Audio
+  # Audio con PipeWire (default su 25.05)
   services.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
@@ -35,40 +37,33 @@
     pulse.enable = true;
   };
 
-  # Bluetooth
-  hardware.bluetooth.enable = true;
-
-  # Printing
-  services.printing.enable = true;
-
   # NetworkManager
   networking.networkmanager.enable = true;
   users.users.filippo.extraGroups = [ "networkmanager" ];
+
+  # Printing
+  services.printing.enable = true;
 
   # Fonts
   fonts.packages = with pkgs; [
     noto-fonts
     noto-fonts-cjk-sans
-    noto-fonts-cjk-serif
     noto-fonts-emoji
     liberation_ttf
     fira-code
     fira-code-symbols
     font-awesome
-    # Font per KDE
     source-code-pro
     source-sans-pro
   ];
 
-  # Pacchetti desktop
+  # Pacchetti desktop essenziali
   environment.systemPackages = with pkgs; [
-    # Messaggistica
+    # Browser e comunicazione
+    firefox
     telegram-desktop
 
-    # Browser
-    firefox
-    
-    # Editor di testo
+    # Editor
     vscode
     
     # Multimedia
@@ -76,27 +71,27 @@
     spotify
     
     # KDE utilities per Plasma 6
-    kdePackages.kate # Editor di testo KDE
-    kdePackages.dolphin # File manager KDE
-    kdePackages.spectacle # Screenshot tool KDE
-    kdePackages.okular # PDF viewer KDE
-    kdePackages.gwenview # Image viewer KDE
-    kdePackages.konsole # Terminal KDE
+    kdePackages.kate
+    kdePackages.dolphin
+    kdePackages.spectacle
+    kdePackages.okular
+    kdePackages.gwenview
+    kdePackages.konsole
     
-    # Utilities generiche
+    # Utilities
     dconf-editor
   ];
 
-  # Configurazioni KDE Plasma 6
+  # Esclude app KDE non necessarie
   environment.plasma6.excludePackages = with pkgs.kdePackages; [
-    # Rimuovi app KDE non necessarie
-    elisa # music player
+    elisa
     khelpcenter
   ];
   
-  # Abilita alcune features KDE
+  # KDE features
   programs.kdeconnect.enable = true;
 
-  # Spotify sync
-  networking.firewall.allowedTCPPorts = [ 57621 ];
+  # Firewall per KDE Connect
+  networking.firewall.allowedTCPPorts = [ 1714 1715 1716 1717 1718 1719 1720 1721 1722 1723 1724 ];
+  networking.firewall.allowedUDPPorts = [ 1714 1715 1716 1717 1718 1719 1720 1721 1722 1723 1724 ];
 }
