@@ -5,7 +5,7 @@
   
   home.username = "filippo";
   home.homeDirectory = "/home/filippo";
-  home.stateVersion = "24.05";
+  home.stateVersion = "24.05";  # NON cambiare questo valore
 
   # Git configuration (personale - rimossa da common.nix)
   programs.git = {

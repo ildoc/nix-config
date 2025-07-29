@@ -12,16 +12,20 @@
       layout = "it";
       variant = "";
     };
-    
-    # KDE Plasma
-    desktopManager.plasma5.enable = true;
   };
   
+  # KDE Plasma 6 (aggiornato da Plasma 5)
+  services.desktopManager.plasma6.enable = true;
+  
   # Display manager (separato da xserver)
-  services.displayManager.sddm.enable = true;
+  services.displayManager = {
+    sddm = {
+      enable = true;
+      wayland.enable = true; # Abilita Wayland per SDDM
+    };
+  };
   
   # Audio
-  sound.enable = true;
   hardware.pulseaudio.enable = false;
   security.rtkit.enable = true;
   services.pipewire = {
@@ -44,7 +48,8 @@
   # Fonts
   fonts.packages = with pkgs; [
     noto-fonts
-    noto-fonts-cjk
+    noto-fonts-cjk-sans
+    noto-fonts-cjk-serif
     noto-fonts-emoji
     liberation_ttf
     fira-code
@@ -70,19 +75,20 @@
     vlc
     spotify
     
-    # KDE utilities (Konsole è già incluso in KDE)
-    kate # Editor di testo KDE
-    dolphin # File manager KDE
-    spectacle # Screenshot tool KDE
-    okular # PDF viewer KDE
-    gwenview # Image viewer KDE
+    # KDE utilities per Plasma 6
+    kdePackages.kate # Editor di testo KDE
+    kdePackages.dolphin # File manager KDE
+    kdePackages.spectacle # Screenshot tool KDE
+    kdePackages.okular # PDF viewer KDE
+    kdePackages.gwenview # Image viewer KDE
+    kdePackages.konsole # Terminal KDE
     
     # Utilities generiche
-    gnome.dconf-editor
+    dconf-editor
   ];
 
-  # Configurazioni KDE specifiche (nuova sintassi)
-  environment.plasma5.excludePackages = with pkgs.libsForQt5; [
+  # Configurazioni KDE Plasma 6
+  environment.plasma6.excludePackages = with pkgs.kdePackages; [
     # Rimuovi app KDE non necessarie
     elisa # music player
     khelpcenter

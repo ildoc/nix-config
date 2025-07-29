@@ -5,13 +5,13 @@
   
   environment.systemPackages = with pkgs; [
     # Linguaggi di programmazione
-    nodejs_20
+    nodejs_22  # Aggiornato da nodejs_20 (usa una versione LTS stabile)
     python3
     python3Packages.pip
     go
     
     # .NET development (disponibile su tutti gli host development)
-    dotnet-sdk_8
+    dotnet-sdk_8  # Ancora supportato in 25.05
     
     # Database tools
     postgresql

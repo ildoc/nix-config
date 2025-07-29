@@ -140,9 +140,19 @@
   users.users.filippo.extraGroups = [ "bluetooth" "video" ];
   
   # Num Lock abilitato all'avvio
-  services.xserver.displayManager.sessionCommands = ''
-    ${pkgs.numlockx}/bin/numlockx on
-  '';
+  # Per Plasma 6, NumLock è gestito attraverso le impostazioni di sistema
+  # Possiamo usare un servizio systemd come alternativa
+  systemd.services.numlock-on = {
+    description = "Enable NumLock on startup";
+    wantedBy = [ "graphical.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${pkgs.numlockx}/bin/numlockx on";
+      StandardInput = "tty";
+      TTYPath = "/dev/tty1";
+    };
+  };
   
   # Thermal management
   services.thermald.enable = true;
