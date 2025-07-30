@@ -43,9 +43,6 @@
   # Firmware completo
   hardware.enableRedistributableFirmware = true;
   
-  # Servizi bluetooth standard
-  # services.blueman.enable = true;
-  
   # Backlight control
   programs.light.enable = true;
   
