@@ -85,6 +85,8 @@
     firefox                 # Browser principale
     telegram-desktop        # Messaging
 
+    prismlauncher
+
     # === EDITOR E IDE ===
     vscode                  # Editor di codice universale
     
