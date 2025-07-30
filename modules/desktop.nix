@@ -1,97 +1,130 @@
 { config, pkgs, ... }:
 
 {
-  # Configurazione desktop environment aggiornata per NixOS 25.05
-  
-  # X11 e desktop
+  # ============================================================================
+  # CONFIGURAZIONE DESKTOP ENVIRONMENT
+  # ============================================================================
+  # Modulo per sistemi desktop con KDE Plasma 6
+  # Ottimizzato per NixOS 25.05 con le nuove API
+
+  # === X11 E DISPLAY SERVER ===
   services.xserver = {
     enable = true;
     
-    # Configurazione tastiera
+    # Configurazione tastiera italiana
     xkb = {
       layout = "it";
       variant = "";
-      # Num Lock abilitato (integrato con xkb)
-      options = "numlock:on";
+      options = "numlock:on"; # Num Lock attivo all'avvio
     };
   };
   
-  # KDE Plasma 6
+  # === DESKTOP ENVIRONMENT ===
+  # KDE Plasma 6 - Ambiente desktop moderno e completo
   services.desktopManager.plasma6.enable = true;
   
-  # Display manager
+  # === DISPLAY MANAGER ===
   services.displayManager = {
     sddm = {
       enable = true;
-      wayland.enable = true;
+      wayland.enable = true; # Supporto Wayland per il futuro
     };
   };
   
-  # Audio con PipeWire (default su 25.05)
-  services.pulseaudio.enable = false;
-  security.rtkit.enable = true;
+  # === SISTEMA AUDIO ===
+  # PipeWire - audio server moderno (default su NixOS 25.05)
+  services.pulseaudio.enable = false; # Disabilita PulseAudio legacy
+  
+  security.rtkit.enable = true; # Real-time kit per audio a bassa latenza
+  
   services.pipewire = {
     enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
+    
+    # Compatibilità con ALSA
+    alsa = {
+      enable = true;
+      support32Bit = true; # Supporto applicazioni 32-bit
+    };
+    
+    # Compatibilità PulseAudio
     pulse.enable = true;
   };
 
-  # NetworkManager
+  # === NETWORK MANAGEMENT ===
   networking.networkmanager.enable = true;
+  
+  # Aggiungi utente al gruppo per gestione network
   users.users.filippo.extraGroups = [ "networkmanager" ];
 
-  # Printing
+  # === SERVIZI DI STAMPA ===
   services.printing.enable = true;
 
-  # Fonts
+  # === CONFIGURAZIONE FONT ===
   fonts.packages = with pkgs; [
-    noto-fonts
-    noto-fonts-cjk-sans
-    noto-fonts-emoji
-    liberation_ttf
-    fira-code
-    fira-code-symbols
-    font-awesome
-    source-code-pro
-    source-sans-pro
+    # === FONT DI SISTEMA ===
+    noto-fonts              # Font Unicode completo di Google
+    noto-fonts-cjk-sans     # Supporto lingue asiatiche
+    noto-fonts-emoji        # Emoji
+
+    # === FONT LIBERI ===
+    liberation_ttf          # Alternative libere a Arial, Times, Courier
+
+    # === FONT PER SVILUPPO ===
+    fira-code               # Font monospace con ligature
+    fira-code-symbols       # Simboli aggiuntivi
+    source-code-pro         # Font monospace di Adobe
+    source-sans-pro         # Font sans-serif di Adobe
+
+    # === FONT PER DESIGN ===
+    font-awesome            # Icone vettoriali
   ];
 
-  # Pacchetti desktop essenziali
+  # === APPLICAZIONI DESKTOP ESSENZIALI ===
   environment.systemPackages = with pkgs; [
-    # Browser e comunicazione
-    firefox
-    telegram-desktop
+    # === BROWSER E COMUNICAZIONE ===
+    firefox                 # Browser principale
+    telegram-desktop        # Messaging
 
-    # Editor
-    vscode
+    # === EDITOR E IDE ===
+    vscode                  # Editor di codice universale
     
-    # Multimedia
-    vlc
-    spotify
+    # === MULTIMEDIA ===
+    vlc                     # Player video universale
+    spotify                 # Streaming musicale
     
-    # KDE utilities per Plasma 6
-    kdePackages.kate
-    kdePackages.dolphin
-    kdePackages.spectacle
-    kdePackages.okular
-    kdePackages.gwenview
-    kdePackages.konsole
+    # === APPLICAZIONI KDE PLASMA 6 ===
+    kdePackages.kate        # Editor di testo avanzato
+    kdePackages.dolphin     # File manager
+    kdePackages.spectacle   # Screenshot tool
+    kdePackages.okular      # Visualizzatore PDF
+    kdePackages.gwenview    # Visualizzatore immagini
+    kdePackages.konsole     # Terminale KDE
     
-    # Utilities
-    dconf-editor
+    # === UTILITIES SISTEMA ===
+    dconf-editor            # Editor configurazioni GNOME/GTK
   ];
 
-  # Esclude app KDE non necessarie
+  # === OTTIMIZZAZIONE KDE ===
+  # Rimuovi applicazioni KDE non necessarie per ridurre bloat
   environment.plasma6.excludePackages = with pkgs.kdePackages; [
-    elisa
-    khelpcenter
+    elisa                   # Player musicale (usiamo Spotify)
+    khelpcenter            # Centro aiuto (raramente usato)
   ];
   
-  # KDE features
+  # === INTEGRAZIONE MOBILE ===
+  # KDE Connect per sincronizzazione con dispositivi Android/iOS
   programs.kdeconnect.enable = true;
 
-  # Firewall per KDE Connect
-  networking.firewall.allowedTCPPorts = [ 1714 1715 1716 1717 1718 1719 1720 1721 1722 1723 1724 ];
-  networking.firewall.allowedUDPPorts = [ 1714 1715 1716 1717 1718 1719 1720 1721 1722 1723 1724 ];
+  # === FIREWALL PER KDE CONNECT ===
+  # Porte necessarie per la comunicazione con dispositivi mobili
+  networking.firewall = {
+    allowedTCPPorts = [ 
+      # Range porte KDE Connect
+      1714 1715 1716 1717 1718 1719 1720 1721 1722 1723 1724 
+    ];
+    allowedUDPPorts = [ 
+      # Range porte KDE Connect  
+      1714 1715 1716 1717 1718 1719 1720 1721 1722 1723 1724 
+    ];
+  };
 }
