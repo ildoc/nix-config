@@ -95,6 +95,10 @@
                 # Configurazione utente specifica
                 users.filippo = import ./users/filippo.nix;
                 
+                # === GESTIONE BACKUP AUTOMATICO ===
+                # Backup automatico dei file esistenti
+                backupFileExtension = "backup";
+                
                 # Passa inputs aggiuntivi a Home Manager se necessario
                 # extraSpecialArgs = { inherit inputs; };
               };

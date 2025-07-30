@@ -57,7 +57,7 @@
     enable = true;
     
     # === PERSONALIZZAZIONI SHELL ===
-    initExtra = ''
+    initContent = ''
       # ========================================================================
       # CONFIGURAZIONI UTENTE SPECIFICHE
       # ========================================================================
@@ -118,7 +118,9 @@
       fi
       
       # === PERSONALIZZAZIONI HOST-SPECIFIC ===
-      case "$(hostname)" in
+      # Usa hostname invece di config per evitare dipendenze circolari
+      CURRENT_HOST=$(hostname)
+      case "$CURRENT_HOST" in
         "slimbook")
           # === LAPTOP DEVELOPMENT ===
           # Alias per applicazioni GUI
@@ -209,8 +211,8 @@
       NPM_CONFIG_PREFIX = "$HOME/.npm-global";
       
       # === EDITOR PREFERENCES ===
-      # Per sistemi desktop usa VS Code, per server nano
-      VISUAL = if config.networking.hostName == "dev-server" then "nano" else "code";
+      VISUAL = "code";
+      EDITOR = "nano";
     };
   };
 
@@ -218,7 +220,7 @@
   home.packages = with pkgs; [
     # === UTILITY CLI ===
     bat                     # Cat colorato
-    exa                     # ls moderno  
+    eza                     # ls moderno  
     fd                      # find moderno
     ripgrep                 # grep moderno
     tldr                    # man pages semplificate
@@ -232,15 +234,9 @@
     unrar                   # Estrazione RAR
     p7zip                   # Supporto 7z
     
-  ] ++ (
-    # === PACCHETTI CONDIZIONALI ===
-    # Solo per sistemi non server
-    if config.networking.hostName != "dev-server" then [
-      # GUI applications per desktop
-      firefox                # Browser
-      # Altri pacchetti GUI specifici dell'utente
-    ] else []
-  );
+    # === GUI APPLICATIONS ===
+    firefox                 # Browser
+  ];
 
   # === CONFIGURAZIONI PROGRAMMI ===
   
@@ -253,10 +249,9 @@
     };
   };
   
-  # === EXA (ls moderno) ===
-  programs.exa = {
+  # === EZA (ls moderno) ===
+  programs.eza = {
     enable = true;
-    enableAliases = true;    # Sostituisce ls automaticamente
   };
   
   # === FZF (fuzzy finder) ===

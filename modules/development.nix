@@ -41,10 +41,13 @@
   ] ++ (
     # === IDE CONDIZIONALI PER HOST ===
     # Installa IDE pesanti solo dove necessario
-    if config.networking.hostName == "slimbook" then [
+    let
+      hostname = config.networking.hostName;
+    in
+    if hostname == "slimbook" then [
       unstable.jetbrains.rider # IDE per .NET (versione più recente)
       vscode                   # Visual Studio Code
-    ] else if config.networking.hostName == "gaming" then [
+    ] else if hostname == "gaming" then [
       vscode                   # Solo VS Code per gaming rig
     ] else [
       # Server: nessun IDE GUI
