@@ -55,45 +55,10 @@ in
       alias projects="cd ~/Projects"
       alias downloads="cd ~/Downloads"
       alias docs="cd ~/Documents"
-      
-      # Git shortcuts
-      alias gs="git status"
-      alias ga="git add"
-      alias gc="git commit"
-      alias gp="git push"
-      alias gl="git pull"
-      alias gd="git diff"
-      alias gb="git branch"
-      alias gco="git checkout"
-      alias gsw="git switch"
-      
-      # Docker shortcuts
-      if command -v docker >/dev/null 2>&1; then
-        alias dps="docker ps"
-        alias dpsa="docker ps -a"
-        alias di="docker images"
-        alias drmi="docker rmi"
-        alias drm="docker rm"
-        alias dlog="docker logs"
-        alias dexec="docker exec -it"
-        alias dstop="docker stop"
-        alias dstart="docker start"
-        alias dclean="docker system prune -f"
-      fi
-      
+     
       # Kubernetes shortcuts
       if command -v kubectl >/dev/null 2>&1; then
         alias k="kubectl"
-        alias kgp="kubectl get pods"
-        alias kgs="kubectl get services"
-        alias kgd="kubectl get deployments"
-        alias kdp="kubectl describe pod"
-        alias kds="kubectl describe service"
-        alias kdd="kubectl describe deployment"
-        alias klog="kubectl logs"
-        alias kexec="kubectl exec -it"
-        alias kctx="kubectl config current-context"
-        alias kns="kubectl config set-context --current --namespace"
       fi
       
       # Host-specific

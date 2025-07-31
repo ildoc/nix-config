@@ -18,15 +18,14 @@
         };
       };
     };
-    
-    # Host-specific configurations
-    hosts = {
-      slimbook = {
-        wallpaper = lib.mkOption {
-          type = lib.types.str;
-          default = "slimbook.jpg";
-          description = "Wallpaper filename for slimbook";
-        };
+  };
+  
+  # Set default values
+  config = {
+    myConfig = {
+      users.filippo = {
+        gitUserName = lib.mkDefault "ildoc";
+        gitUserEmail = lib.mkDefault "il_doc@protonmail.com";
       };
     };
   };
