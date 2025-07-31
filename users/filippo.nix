@@ -55,7 +55,7 @@ in
       alias projects="cd ~/Projects"
       alias downloads="cd ~/Downloads"
       alias docs="cd ~/Documents"
-     
+      
       # Kubernetes shortcuts
       if command -v kubectl >/dev/null 2>&1; then
         alias k="kubectl"
@@ -167,4 +167,8 @@ in
     };
   };
   
+  # Create custom directories
+  systemd.user.tmpfiles.rules = [
+    "d ${config.home.homeDirectory}/Projects 0755 ${config.home.username} users -"
+  ];
 }
