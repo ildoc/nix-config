@@ -71,35 +71,4 @@
     obsidian
     libreoffice
   ];
-  
-  # Custom wallpaper for slimbook
-  # Copy wallpaper to system location
-  environment.etc."wallpapers/${config.myConfig.hosts.slimbook.wallpaper}".source = 
-    ../../assets/wallpapers/${config.myConfig.hosts.slimbook.wallpaper};
-  
-  # Set wallpaper via systemd service for user
-  systemd.user.services.set-wallpaper = {
-    description = "Set custom wallpaper";
-    wantedBy = [ "graphical-session.target" ];
-    after = [ "graphical-session.target" ];
-    serviceConfig = {
-      Type = "oneshot";
-      ExecStart = "${pkgs.writeShellScript "set-wallpaper" ''
-        # Wait for Plasma to start
-        sleep 5
-        
-        # Set wallpaper using Plasma's D-Bus interface
-        ${pkgs.libsForQt5.qttools.bin}/bin/qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript '
-          var allDesktops = desktops();
-          for (i = 0; i < allDesktops.length; i++) {
-            d = allDesktops[i];
-            d.wallpaperPlugin = "org.kde.image";
-            d.currentConfigGroup = Array("Wallpaper", "org.kde.image", "General");
-            d.writeConfig("Image", "file:///etc/wallpapers/${config.myConfig.hosts.slimbook.wallpaper}");
-          }
-        '
-      ''}";
-      RemainAfterExit = true;
-    };
-  };
 }
