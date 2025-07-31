@@ -70,5 +70,20 @@
     # Productivity
     obsidian
     libreoffice
+    
+    # VPN tools
+    wireguard-tools
   ];
+  
+  # WireGuard support in NetworkManager
+  networking.networkmanager = {
+    enable = true;  # Already enabled in desktop module, but being explicit
+    plugins = with pkgs; [
+      networkmanager-openvpn
+      networkmanager-l2tp
+    ];
+  };
+  
+  # Enable WireGuard kernel module
+  boot.kernelModules = [ "wireguard" ];
 }
