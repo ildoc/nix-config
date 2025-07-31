@@ -73,17 +73,32 @@
   ];
   
   # Custom wallpaper for slimbook
-  services.displayManager.sddm.theme = "breeze";
-  
-  # KDE Plasma wallpaper configuration
-  system.activationScripts.setWallpaper = ''
-    mkdir -p /etc/skel/.config
-    cat > /etc/skel/.config/plasma-org.kde.plasma.desktop-appletsrc <<EOF
-    [Containments][1][Wallpaper][org.kde.image][General]
-    Image=/etc/nixos/assets/wallpapers/slimbook.jpg
-    EOF
-  '';
-  
   # Copy wallpaper to system location
   environment.etc."wallpapers/slimbook.jpg".source = ../../assets/wallpapers/slimbook.jpg;
+  
+  # Set wallpaper via systemd service for user
+  systemd.user.services.set-wallpaper = {
+    description = "Set custom wallpaper";
+    wantedBy = [ "graphical-session.target" ];
+    after = [ "graphical-session.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.writeShellScript "set-wallpaper" ''
+        # Wait for Plasma to start
+        sleep 5
+        
+        # Set wallpaper using Plasma's D-Bus interface
+        ${pkgs.libsForQt5.qttools.bin}/bin/qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript '
+          var allDesktops = desktops();
+          for (i = 0; i < allDesktops.length; i++) {
+            d = allDesktops[i];
+            d.wallpaperPlugin = "org.kde.image";
+            d.currentConfigGroup = Array("Wallpaper", "org.kde.image", "General");
+            d.writeConfig("Image", "file:///etc/wallpapers/slimbook.jpg");
+          }
+        '
+      ''}";
+      RemainAfterExit = true;
+    };
+  };
 }

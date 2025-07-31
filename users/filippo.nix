@@ -39,7 +39,7 @@ in
   programs.zsh = {
     enable = true;
     
-    initExtra = ''
+    initContent = ''
       # Theme
       if [[ -n "$ZSH" ]]; then
         ZSH_THEME="robbyrussell"
@@ -197,12 +197,4 @@ in
     };
   };
   
-  # Plasma configuration for slimbook
-  programs.plasma = lib.mkIf isSlimbook {
-    enable = true;
-    
-    workspace = {
-      wallpaper = "/etc/nixos/assets/wallpapers/slimbook.jpg";
-    };
-  };
 }
