@@ -70,6 +70,8 @@
     # Productivity
     obsidian
     libreoffice
+
+    teams-for-linux
     
     # VPN tools
     wireguard-tools
