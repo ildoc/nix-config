@@ -24,7 +24,7 @@
       slimbook = {
         wallpaper = lib.mkOption {
           type = lib.types.str;
-          default = "slimbook.png";
+          default = "slimbook.jpg";
           description = "Wallpaper filename for slimbook";
         };
       };

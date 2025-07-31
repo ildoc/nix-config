@@ -1,8 +1,8 @@
-{ config, pkgs, lib, hostname ? "", osConfig ? {}, ... }:
+{ config, pkgs, lib, hostname ? "", osConfig, ... }:
 
 let
   isSlimbook = hostname == "slimbook";
-  # Access centralized config if available
+  # Access centralized config through osConfig
   gitConfig = osConfig.myConfig.users.filippo or {
     gitUserName = "ildoc";
     gitUserEmail = "il_doc@protonmail.com";
@@ -44,7 +44,7 @@ in
   programs.zsh = {
     enable = true;
     
-    initExtra = ''
+    initContent = ''
       # Theme
       if [[ -n "$ZSH" ]]; then
         ZSH_THEME="robbyrussell"
