@@ -74,7 +74,8 @@
   
   # Custom wallpaper for slimbook
   # Copy wallpaper to system location
-  environment.etc."wallpapers/slimbook.jpg".source = ../../assets/wallpapers/slimbook.jpg;
+  environment.etc."wallpapers/${config.myConfig.hosts.slimbook.wallpaper}".source = 
+    ../../assets/wallpapers/${config.myConfig.hosts.slimbook.wallpaper};
   
   # Set wallpaper via systemd service for user
   systemd.user.services.set-wallpaper = {
@@ -94,7 +95,7 @@
             d = allDesktops[i];
             d.wallpaperPlugin = "org.kde.image";
             d.currentConfigGroup = Array("Wallpaper", "org.kde.image", "General");
-            d.writeConfig("Image", "file:///etc/wallpapers/slimbook.jpg");
+            d.writeConfig("Image", "file:///etc/wallpapers/${config.myConfig.hosts.slimbook.wallpaper}");
           }
         '
       ''}";

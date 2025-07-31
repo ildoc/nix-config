@@ -65,7 +65,10 @@
                 useUserPackages = true;
                 users.filippo = import ./users/filippo.nix;
                 backupFileExtension = "backup";
-                extraSpecialArgs = { inherit hostname; };  # Pass hostname to home-manager
+                extraSpecialArgs = { 
+                  inherit hostname;
+                  osConfig = config;  # Pass system config to home-manager
+                };
               };
               
               networking.hostName = hostname;

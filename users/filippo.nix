@@ -1,7 +1,12 @@
-{ config, pkgs, lib, hostname ? "", ... }:
+{ config, pkgs, lib, hostname ? "", osConfig ? {}, ... }:
 
 let
   isSlimbook = hostname == "slimbook";
+  # Access centralized config if available
+  gitConfig = osConfig.myConfig.users.filippo or {
+    gitUserName = "ildoc";
+    gitUserEmail = "il_doc@protonmail.com";
+  };
 in
 {
   home.username = "filippo";
@@ -12,8 +17,8 @@ in
 
   programs.git = {
     enable = true;
-    userName = "ildoc";
-    userEmail = "il_doc@protonmail.com";
+    userName = gitConfig.gitUserName;
+    userEmail = gitConfig.gitUserEmail;
     
     extraConfig = {
       init.defaultBranch = "main";
@@ -39,7 +44,7 @@ in
   programs.zsh = {
     enable = true;
     
-    initContent = ''
+    initExtra = ''
       # Theme
       if [[ -n "$ZSH" ]]; then
         ZSH_THEME="robbyrussell"

@@ -2,6 +2,7 @@
 
 {
   imports = [
+    ./config.nix
     ./locale.nix
     ./nix-config.nix
     ./shell.nix
