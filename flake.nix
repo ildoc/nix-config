@@ -41,9 +41,11 @@
               nixpkgs.overlays = [ overlay-unstable ];
             })
             
+            stylix.nixosModules.stylix
+            
             ./hosts/${hostname}/configuration.nix
             ./modules/common.nix
-            ./modules/users/filippo.nix  # User module separato
+            ./modules/users/filippo.nix
             
             { networking.hostName = hostname; }
             
@@ -59,9 +61,11 @@
               nixpkgs.overlays = [ overlay-unstable ];
             })
             
+            stylix.nixosModules.stylix
+            
             ./hosts/${hostname}/configuration.nix
             ./modules/common.nix
-            ./modules/users/filippo.nix  # User module separato
+            ./modules/users/filippo.nix
 
             home-manager.nixosModules.home-manager
             {
