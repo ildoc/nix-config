@@ -7,6 +7,7 @@
     ./desktop/networking.nix
     ./desktop/fonts.nix
     ./desktop/applications.nix
+    ./desktop/power-management.nix
   ];
 
   services.printing.enable = true;
