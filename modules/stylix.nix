@@ -80,6 +80,7 @@ in
       console.enable = true;
       grub.enable = false;  # Hai systemd-boot
       gtk.enable = true;
+      gnome.enable = false;  # Disabilita esplicitamente GNOME
       kde.enable = true;  # Importante per Plasma
       nixvim.enable = false;  # Se usi neovim
     };
