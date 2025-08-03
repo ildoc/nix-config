@@ -24,27 +24,29 @@ in
     # Polarity - "dark" per tema scuro, "light" per tema chiaro
     polarity = "dark";
     
-    # Schema colori - puoi usare "auto" per generarlo dal wallpaper
-    # o uno schema predefinito
+    # Schema colori - puoi usare uno schema predefinito o generarlo dal wallpaper
     base16Scheme = "${pkgs.base16-schemes}/share/themes/catppuccin-mocha.yaml";
-    # Alternatives:
+    
+    # Alternative color schemes:
     # base16Scheme = "${pkgs.base16-schemes}/share/themes/dracula.yaml";
     # base16Scheme = "${pkgs.base16-schemes}/share/themes/nord.yaml";
     # base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-dark-medium.yaml";
+    # O lascia che venga generato automaticamente dal wallpaper:
+    # base16Scheme = lib.mkForce null;
     
     # Configurazione fonts
     fonts = {
-      monospace = {
-        package = pkgs.nerdfonts.override { fonts = [ "FiraCode" ]; };
-        name = "FiraCode Nerd Font Mono";
+      serif = {
+        package = pkgs.noto-fonts;
+        name = "Noto Serif";
       };
       sansSerif = {
         package = pkgs.noto-fonts;
         name = "Noto Sans";
       };
-      serif = {
-        package = pkgs.noto-fonts;
-        name = "Noto Serif";
+      monospace = {
+        package = pkgs.nerdfonts.override { fonts = [ "FiraCode" ]; };
+        name = "FiraCode Nerd Font Mono";
       };
       emoji = {
         package = pkgs.noto-fonts-emoji;
@@ -74,16 +76,15 @@ in
       size = 24;
     };
     
-    # Target da configurare
-    targets = {
-      chromium.enable = false;  # Disabilita se preferisci tema di Chrome
-      console.enable = true;
-      grub.enable = false;  # Hai systemd-boot
-      gtk.enable = true;
-      gnome.enable = false;  # Disabilita esplicitamente GNOME
-      kde.enable = true;  # Importante per Plasma
-      nixvim.enable = false;  # Se usi neovim
-    };
+    # Auto-enable targets (default è true)
+    # Se metti false, devi abilitare manualmente ogni target
+    autoEnable = true;
+    
+    # Per disabilitare target specifici (esempio):
+    # targets = {
+    #   chromium.enable = false;  # Se non vuoi che Chrome usi il tema
+    #   firefox.enable = true;    # Firefox userà il tema
+    # };
   };
   
   # Font packages extra per applicazioni
@@ -92,4 +93,11 @@ in
     liberation_ttf       # Compatibilità documenti MS
     (nerdfonts.override { fonts = [ "FiraCode" "JetBrainsMono" ]; })
   ]);
+  
+  # Integrazione Home Manager (abilita di default per NixOS)
+  # Questo fa sì che gli utenti ereditino automaticamente il tema
+  stylix.homeManagerIntegration = lib.mkIf enableStylix {
+    autoImport = true;
+    followSystem = true;
+  };
 }
