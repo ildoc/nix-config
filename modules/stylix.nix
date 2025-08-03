@@ -39,7 +39,7 @@ in
           name = "Noto Sans";
         };
         monospace = {
-          package = pkgs.nerdfonts.override { fonts = [ "FiraCode" ]; };
+          package = pkgs.nerd-fonts.fira-code;
           name = "FiraCode Nerd Font Mono";
         };
         emoji = {
@@ -69,13 +69,21 @@ in
         name = "breeze_cursors";
         size = 24;
       };
+      
+      # Disabilita l'integrazione automatica con Home Manager
+      # per evitare conflitti con mako
+      homeManagerIntegration = {
+        autoImport = false;
+        followSystem = false;
+      };
     };
     
-    # Font packages aggiuntivi
+    # Font packages aggiuntivi - AGGIORNATI AL NUOVO FORMATO
     fonts.packages = with pkgs; [
       noto-fonts-cjk-sans
       liberation_ttf
-      (nerdfonts.override { fonts = [ "FiraCode" "JetBrainsMono" ]; })
+      nerd-fonts.fira-code
+      nerd-fonts.jetbrains-mono
     ];
   };
 }
