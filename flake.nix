@@ -14,9 +14,14 @@
       url = "github:nix-community/nixos-vscode-server";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    stylix = {
+      url = "github:danth/stylix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, vscode-server }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, vscode-server, stylix }:
     let
       system = "x86_64-linux";
       

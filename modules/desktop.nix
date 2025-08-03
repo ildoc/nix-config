@@ -8,6 +8,8 @@
     ./desktop/fonts.nix
     ./desktop/applications.nix
     ./desktop/power-management.nix
+    ./desktop/file-manager.nix
+    ./desktop/network-storage.nix 
   ];
 
   services.printing.enable = true;
