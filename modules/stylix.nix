@@ -80,6 +80,12 @@ in
     # Se metti false, devi abilitare manualmente ogni target
     autoEnable = true;
     
+    # Integrazione Home Manager (dentro lo stesso blocco stylix)
+    homeManagerIntegration = {
+      autoImport = true;    # Importa automaticamente stylix per tutti gli utenti
+      followSystem = true;  # Gli utenti ereditano il tema di sistema
+    };
+    
     # Per disabilitare target specifici (esempio):
     # targets = {
     #   chromium.enable = false;  # Se non vuoi che Chrome usi il tema
@@ -93,11 +99,4 @@ in
     liberation_ttf       # Compatibilità documenti MS
     (nerdfonts.override { fonts = [ "FiraCode" "JetBrainsMono" ]; })
   ]);
-  
-  # Integrazione Home Manager (abilita di default per NixOS)
-  # Questo fa sì che gli utenti ereditino automaticamente il tema
-  stylix.homeManagerIntegration = lib.mkIf enableStylix {
-    autoImport = true;
-    followSystem = true;
-  };
 }
