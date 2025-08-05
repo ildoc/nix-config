@@ -1,5 +1,12 @@
 { pkgs, ... }:
 
+let
+  # Combina multiple versioni di .NET
+  dotnetCombined = with pkgs.dotnetCorePackages; combinePackages [
+    sdk_8_0    # LTS
+    sdk_9_0    # Current
+  ];
+in
 {
   environment.systemPackages = with pkgs; [
     # Languages and runtimes
@@ -8,21 +15,15 @@
     python3Packages.pip
     go
     
-    # .NET Development - SDK e runtime completi
-    dotnet-sdk_8
-    dotnet-runtime_8
-    dotnet-aspnetcore_8
-    
-    # MSBuild e dipendenze
-    msbuild
-    mono  # Necessario per alcuni progetti legacy
+    # .NET Development - Versione combinata
+    dotnetCombined
     
     # Build tools
     gnumake
     cmake
     gcc
     
-    # Librerie aggiuntive per .NET
+    # Librerie necessarie per .NET
     icu
     openssl
     zlib
@@ -30,9 +31,9 @@
   
   # Variabili d'ambiente per .NET
   environment.variables = {
-    DOTNET_ROOT = "${pkgs.dotnet-sdk_8}";
+    DOTNET_ROOT = "${dotnetCombined}";
     DOTNET_CLI_TELEMETRY_OPTOUT = "1";
-    # MSBuild potrebbe richiedere questo
-    MSBuildSDKsPath = "${pkgs.dotnet-sdk_8}/sdk/${pkgs.dotnet-sdk_8.version}/Sdks";
+    # Disabilita il messaggio di benvenuto
+    DOTNET_NOLOGO = "1";
   };
 }
