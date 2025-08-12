@@ -7,9 +7,35 @@
 
   networking.hostName = "slimbook";
 
-  # Boot loader
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
+  # Boot loader per dual boot con Windows
+  boot.loader = {
+    systemd-boot = {
+      enable = true;
+      # Aumenta il numero di configurazioni nel menu
+      configurationLimit = 10;
+      # Editor di comandi nel menu boot (opzionale, per sicurezza puoi lasciarlo false)
+      editor = false;
+      # Mostra sempre il menu di boot
+      consoleMode = "max";
+    };
+    
+    efi = {
+      canTouchEfiVariables = true;
+      efiSysMountPoint = "/boot";
+    };
+    
+    # Timeout del menu di boot (in secondi)
+    timeout = 5;
+  };
+
+  # Aggiungi il rilevamento automatico di Windows
+  boot.loader.systemd-boot.extraEntries = {
+    "windows.conf" = ''
+      title Windows 11
+      efi /EFI/Microsoft/Boot/bootmgfw.efi
+      sort-key z_windows
+    '';
+  };
 
   # Power management per laptop con configurazione intelligente
   services.power-profiles-daemon.enable = false;

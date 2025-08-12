@@ -30,6 +30,9 @@
     
     # Container tools
     kubectl
+
+    # Boot utilities per dual boot
+    efibootmgr 
     
   ] ++ lib.optionals config.services.xserver.enable [
     numlockx
