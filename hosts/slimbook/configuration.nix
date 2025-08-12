@@ -32,10 +32,20 @@
   boot.loader.systemd-boot.extraEntries = {
     "windows.conf" = ''
       title Windows 11
-      efi /EFI/Microsoft/Boot/bootmgfw.efi
+      efi /EFI/Microsoft/Boot/bootmgfw.efi.original
       sort-key z_windows
     '';
   };
+
+  system.activationScripts.fixBootOrder = ''
+    if [ -f /boot/EFI/Microsoft/Boot/bootmgfw.efi.original ]; then
+      # Controlla se i file sono diversi usando diff invece di cmp
+      if ! ${pkgs.diffutils}/bin/diff -q /boot/EFI/systemd/systemd-bootx64.efi /boot/EFI/Microsoft/Boot/bootmgfw.efi > /dev/null 2>&1; then
+        echo "Ripristino workaround boot order..."
+        ${pkgs.coreutils}/bin/cp /boot/EFI/systemd/systemd-bootx64.efi /boot/EFI/Microsoft/Boot/bootmgfw.efi
+      fi
+    fi
+  '';
 
   # Power management per laptop con configurazione intelligente
   services.power-profiles-daemon.enable = false;
