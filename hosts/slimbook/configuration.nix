@@ -29,13 +29,13 @@
   };
 
   # Aggiungi il rilevamento automatico di Windows
-  boot.loader.systemd-boot.extraEntries = {
-    "windows.conf" = ''
-      title Windows 11
-      efi /EFI/Microsoft/Boot/bootmgfw.efi.original
-      sort-key z_windows
-    '';
-  };
+  # boot.loader.systemd-boot.extraEntries = {
+  #   "windows.conf" = ''
+  #     title Windows 11
+  #     efi /EFI/Microsoft/Boot/bootmgfw.efi.original
+  #     sort-key z_windows
+  #   '';
+  # };
 
   system.activationScripts.fixBootOrder = ''
     if [ -f /boot/EFI/Microsoft/Boot/bootmgfw.efi.original ]; then
