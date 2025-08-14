@@ -24,10 +24,14 @@ case "$1" in
         cd "$NIXOS_CONFIG"
         nix flake update
         
-        echo -e "${YELLOW}Vuoi procedere con l'aggiornamento? (y/n)${NC}"
-        read -r response
-        if [[ "$response" == "y" ]]; then
+        # Modifica: Default 'y' con timeout di 10 secondi
+        echo -e "${YELLOW}Vuoi procedere con l'aggiornamento? (Y/n) [default: Y in 10s]${NC}"
+        read -r -t 10 response
+        response=${response:-y}  # Se vuoto o timeout, usa 'y'
+        if [[ "${response,,}" != "n" ]]; then  # Accetta tutto tranne 'n' o 'N'
             sudo nixos-rebuild switch --flake ".#$HOSTNAME"
+        else
+            echo -e "${RED}Aggiornamento annullato${NC}"
         fi
         ;;
         
