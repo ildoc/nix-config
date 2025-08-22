@@ -1,4 +1,3 @@
-# modules/desktop/applications.nix
 { pkgs, ... }:
 
 {
@@ -12,11 +11,9 @@
 
     # Multimedia
     vlc
-    spotify
     
-    # Codec essenziali per podcast Spotify
-    ffmpeg
-    libvorbis
+    # Usa Spotify da unstable che potrebbe avere fix più recenti
+    unstable.spotify
     
     # Games
     prismlauncher
@@ -38,10 +35,4 @@
     elisa
     khelpcenter
   ];
-  
-  # Aggiungi le variabili d'ambiente necessarie
-  environment.variables = {
-    # Forza Spotify a cercare ffmpeg nel PATH di sistema
-    SPOTIFY_FFMPEG = "${pkgs.ffmpeg}/bin/ffmpeg";
-  };
 }
