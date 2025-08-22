@@ -1,3 +1,4 @@
+# modules/desktop/applications.nix
 { pkgs, ... }:
 
 {
@@ -11,21 +12,12 @@
 
     # Multimedia
     vlc
-
-    # Spotify con supporto completo per podcast
-    (spotify.override {
-      ffmpeg = ffmpeg-full;
-    })
+    spotify
     
-    # Codec e librerie multimediali necessarie
-    ffmpeg-full           # Codec completi per audio/video
-    gst_all_1.gstreamer   # GStreamer base
-    gst_all_1.gst-plugins-base
-    gst_all_1.gst-plugins-good
-    gst_all_1.gst-plugins-bad
-    gst_all_1.gst-plugins-ugly
-    gst_all_1.gst-libav  # Plugin libav per GStreamer
-
+    # Codec essenziali per podcast Spotify
+    ffmpeg
+    libvorbis
+    
     # Games
     prismlauncher
 
@@ -46,9 +38,10 @@
     elisa
     khelpcenter
   ];
-
-  # Variabili d'ambiente per GStreamer
-  environment.sessionVariables = {
-    GST_PLUGIN_SYSTEM_PATH_1_0 = "${pkgs.gst_all_1.gst-plugins-base}/lib/gstreamer-1.0:${pkgs.gst_all_1.gst-plugins-good}/lib/gstreamer-1.0:${pkgs.gst_all_1.gst-plugins-bad}/lib/gstreamer-1.0:${pkgs.gst_all_1.gst-plugins-ugly}/lib/gstreamer-1.0:${pkgs.gst_all_1.gst-libav}/lib/gstreamer-1.0";
+  
+  # Aggiungi le variabili d'ambiente necessarie
+  environment.variables = {
+    # Forza Spotify a cercare ffmpeg nel PATH di sistema
+    SPOTIFY_FFMPEG = "${pkgs.ffmpeg}/bin/ffmpeg";
   };
 }
