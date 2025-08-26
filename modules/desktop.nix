@@ -7,7 +7,6 @@
     ./desktop/networking.nix
     ./desktop/fonts.nix
     ./desktop/applications.nix
-    # ./desktop/power-management.nix
     ./desktop/network-storage.nix 
   ];
 

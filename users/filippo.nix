@@ -68,7 +68,6 @@ in
       # Host-specific
       ${if isSlimbook then ''
         alias code="code --disable-gpu-sandbox"
-        alias rider="nohup rider > /dev/null 2>&1 &"
         alias battery="upower -i /org/freedesktop/UPower/devices/battery_BAT0"
       '' else ""}
       
@@ -174,5 +173,6 @@ in
   # Create custom directories
   systemd.user.tmpfiles.rules = [
     "d ${config.home.homeDirectory}/Projects 0755 ${config.home.username} users -"
+    "d ${config.home.homeDirectory}/Pictures/Screenshots 0755 ${config.home.username} users -"
   ];
 }

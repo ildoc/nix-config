@@ -166,15 +166,16 @@ in
           "_launch" = "Meta+E";
         };
         
+        # RIPRISTINATE shortcuts Spectacle per screenshot
         "services/org.kde.spectacle.desktop" = {
-          "RectangularRegionScreenShot" = "Print";
-          "CurrentMonitorScreenShot" = "Meta+Print";
-          "FullScreenScreenShot" = "Shift+Print";
+          "RectangularRegionScreenShot" = "Print";              # Print per ritagliare regione
+          "CurrentMonitorScreenShot" = "Meta+Print";            # Meta+Print per monitor corrente
+          "FullScreenScreenShot" = "Shift+Print";               # Shift+Print per schermo intero
         };
       };
       
       # ============================================================================
-      # KWIN - Window Manager configurations (SEMPLIFICATO)
+      # KWIN - Window Manager configurations
       # ============================================================================
       kwin = {
         # Numero di desktop virtuali
@@ -196,9 +197,9 @@ in
         # Night Color (filtro luce blu)
         nightLight = {
           enable = true;
-          mode = "location";  # o "times" per orari fissi
+          mode = "location";
           location = {
-            latitude = "44.4056";  # Genova
+            latitude = "44.4056";
             longitude = "8.9463";
           };
           temperature = {
@@ -209,44 +210,18 @@ in
       };
       
       # ============================================================================
-      # CONFIGURAZIONI REGIONALI E FILE CONFIG
+      # CONFIGURAZIONI FILE CONFIG
       # ============================================================================
       configFile = {
-        # Configurazioni regionali italiane
-        "plasma-localerc" = {
-          "Formats" = {
-            "LANG" = "it_IT.UTF-8";
-            "LC_ADDRESS" = "it_IT.UTF-8";
-            "LC_MEASUREMENT" = "it_IT.UTF-8";
-            "LC_MONETARY" = "it_IT.UTF-8";
-            "LC_NAME" = "it_IT.UTF-8";
-            "LC_NUMERIC" = "it_IT.UTF-8";
-            "LC_PAPER" = "it_IT.UTF-8";
-            "LC_TELEPHONE" = "it_IT.UTF-8";
-            "LC_TIME" = "it_IT.UTF-8";
-            "useDetailed" = true;
-          };
-        };
-        
         # Power Devil - Gestione energetica
         "powermanagementprofilesrc" = {
           # Profilo AC (corrente)
           "AC/DPMSControl" = {
             "idleTime" = 600;  # Dim dopo 10 minuti
-            "lockBeforeTurnOff" = 0;
           };
           
           "AC/DimDisplay" = {
             "idleTime" = 600;  # 10 minuti
-          };
-          
-          "AC/DisplayBrightness" = {
-            "value" = 100;
-          };
-          
-          "AC/HandleButtonEvents" = lib.mkIf (hostname == "slimbook") {
-            "lidAction" = 0;  # 0=niente, 1=sleep, 2=hibernate, 8=turn off screen
-            "powerButtonAction" = 1;  # 1=sleep
           };
           
           "AC/SuspendSession" = {
@@ -255,41 +230,13 @@ in
           };
           
           # Profilo batteria (solo laptop)
-          "Battery/DPMSControl" = lib.mkIf (hostname == "slimbook") {
-            "idleTime" = 300;  # 5 minuti
-            "lockBeforeTurnOff" = 0;
-          };
-          
           "Battery/DimDisplay" = lib.mkIf (hostname == "slimbook") {
             "idleTime" = 300;  # 5 minuti
-          };
-          
-          "Battery/DisplayBrightness" = lib.mkIf (hostname == "slimbook") {
-            "value" = 60;
-          };
-          
-          "Battery/HandleButtonEvents" = lib.mkIf (hostname == "slimbook") {
-            "lidAction" = 1;  # 1=sleep
-            "powerButtonAction" = 1;
           };
           
           "Battery/SuspendSession" = lib.mkIf (hostname == "slimbook") {
             "idleTime" = 600;  # 10 minuti
             "suspendType" = 1;  # 1=sleep
-          };
-          
-          # Profilo batteria scarica
-          "LowBattery/DPMSControl" = lib.mkIf (hostname == "slimbook") {
-            "idleTime" = 120;  # 2 minuti
-          };
-          
-          "LowBattery/DisplayBrightness" = lib.mkIf (hostname == "slimbook") {
-            "value" = 30;
-          };
-          
-          "LowBattery/SuspendSession" = lib.mkIf (hostname == "slimbook") {
-            "idleTime" = 300;  # 5 minuti
-            "suspendType" = 2;  # 2=hibernate
           };
         };
         
@@ -306,41 +253,20 @@ in
           };
         };
         
-        # Effetti KWin (modo alternativo)
+        # Effetti KWin
         "kwinrc" = {
           "Plugins" = {
             "blurEnabled" = true;
             "contrastEnabled" = true;
             "desktopgridEnabled" = true;
-            "diminactiveEnabled" = false;
-            "kwin4_effect_dimscreenEnabled" = false;
-            "kwin4_effect_fadeEnabled" = true;
-            "kwin4_effect_squashEnabled" = false;
-            "kwin4_effect_translucencyEnabled" = true;
-            "magiclampEnabled" = false;
             "presentwindowsEnabled" = true;
             "slideEnabled" = true;
-            "wobblywindowsEnabled" = false;
           };
           
           "Windows" = {
             "BorderlessMaximizedWindows" = true;
             "FocusPolicy" = "Click";
-            "RollOverDesktops" = true;
           };
-          
-          # "Desktops" = {
-          #   "Number" = 4;
-          #   "Rows" = 1;
-          #   "Id_1" = "01c1e678-8c82-4b5e-8b49-95e4c40e7d9f";
-          #   "Id_2" = "123e4567-e89b-12d3-a456-426614174001";
-          #   "Id_3" = "123e4567-e89b-12d3-a456-426614174002";
-          #   "Id_4" = "123e4567-e89b-12d3-a456-426614174003";
-          #   "Name_1" = "Main";
-          #   "Name_2" = "Dev";
-          #   "Name_3" = "Communication";
-          #   "Name_4" = "Extra";
-          # };
         };
         
         # Notifiche
@@ -359,67 +285,51 @@ in
             "ShowToolTips" = true;
             "RememberOpenedTabs" = false;
           };
-          
-          "PreviewSettings" = {
-            "Plugins" = "directorythumbnail,imagethumbnail,jpegthumbnail,svgthumbnail,ffmpegthumbs";
-          };
         };
         
         # Konsole settings
         "konsolerc" = {
           "Desktop Entry" = {
-            "DefaultProfile" = "Profile 1.profile";
+            "DefaultProfile" = "BreezeDark.profile";
           };
           
           "MainWindow" = {
             "MenuBar" = "Disabled";
-            "ToolBarsMovable" = "Disabled";
           };
         };
         
-        # Spectacle (screenshot tool) settings
+        # Spectacle
         "spectaclerc" = {
           "General" = {
             "autoSaveImage" = true;
             "clipboardGroup" = "PostScreenshotCopyImage";
+            "compressionQuality" = 90;
+            "copyPathToClipboard" = false;
+            "copySaveLocation" = true;
+            "launchAction" = 2;  # 0=Do nothing, 1=Open With, 2=Open Containing Folder
+            "rememberLastRectangularSelection" = true;
+            "showMagnifierChecked" = true;  # Mostra magnifier per selezione precisa
+            "useReleaseToCapture" = true;   # Cattura al rilascio del mouse
           };
+          
           "GuiConfig" = {
-            "captureDelay" = 0;
-            "captureModeIndex" = 1; # 1 = rectangular region
+            "captureMode" = 1;               # 1 = rectangular region (default)
             "captureOnClick" = false;
-            "quitAfterSaveOrCopy" = false;
+            "includeDecorations" = false;    # Non includere decorazioni finestre
+            "includePointer" = false;        # Non includere puntatore mouse
+            "includeShadow" = false;         # Non includere ombre
+            "quitAfterSaveOrCopy" = false;   # Non chiudere dopo salvataggio
+            "showCaptureInstructions" = true;
+            "transientOnly" = false;
+          };
+          
+          "Save" = {
+            "defaultSaveLocation" = "file:///home/filippo/Pictures/Screenshots";
+            "lastSaveLocation" = "file:///home/filippo/Pictures/Screenshots";
+            "saveFilenameFormat" = "Screenshot_%Y%M%d_%H%m%S";
           };
         };
       };
-      
-      # ============================================================================
-      # DATA FILES - File di configurazione aggiuntivi
-      # ============================================================================
-      # dataFile = {
-      #   # Profilo Konsole personalizzato
-      #   "konsole/Profile 1.profile" = {
-      #     text = ''
-      #       [Appearance]
-      #       ColorScheme=BreezeDark
-      #       Font=FiraCode Nerd Font Mono,12,-1,5,50,0,0,0,0,0
-            
-      #       [General]
-      #       Name=Profile 1
-      #       Parent=FALLBACK/
-      #       TerminalColumns=120
-      #       TerminalRows=30
-            
-      #       [Scrolling]
-      #       HistoryMode=2
-      #       HistorySize=10000
-      #       ScrollBarPosition=2
-            
-      #       [Terminal Features]
-      #       BlinkingCursorEnabled=true
-      #       UrlHintsModifiers=0
-      #     '';
-      #   };
-      # };
     };
     
     # ============================================================================
@@ -428,12 +338,7 @@ in
     home.packages = with pkgs; [
       # KDE utilities
       kdePackages.yakuake           # Drop-down terminal
-      kdePackages.kcalc             # Calculator
-      kdePackages.kcolorchooser     # Color picker
-      kdePackages.kdialog           # Dialog boxes for scripts
-      kdePackages.kwalletmanager    # Wallet manager
       kdePackages.ark               # Archive manager
-      kdePackages.kompare           # Diff viewer
       
       # Temi e personalizzazione
       kdePackages.breeze-gtk        # GTK theme integration

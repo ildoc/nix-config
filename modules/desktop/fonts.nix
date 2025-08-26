@@ -15,8 +15,9 @@
       # Free fonts
       liberation_ttf
       
-      # Development fonts con Nerd Fonts (nuovo formato)
-      # (nerdfonts.override { fonts = [ "FiraCode" "JetBrainsMono" "SourceCodePro" ]; })
+      # Nerd Fonts - Usa il nuovo formato per NixOS 24.11+
+      nerd-fonts.fira-code
+      nerd-fonts.jetbrains-mono
       
       # Fonts aggiuntivi
       fira
