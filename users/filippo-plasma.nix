@@ -199,8 +199,8 @@ in
           enable = true;
           mode = "location";  # o "times" per orari fissi
           location = {
-            latitude = 44.4056;  # Genova
-            longitude = 8.9463;
+            latitude = "44.4056";  # Genova
+            longitude = "8.9463";
           };
           temperature = {
             day = 6500;
@@ -330,18 +330,18 @@ in
             "RollOverDesktops" = true;
           };
           
-          "Desktops" = {
-            "Number" = 4;
-            "Rows" = 1;
-            "Id_1" = "01c1e678-8c82-4b5e-8b49-95e4c40e7d9f";
-            "Id_2" = "123e4567-e89b-12d3-a456-426614174001";
-            "Id_3" = "123e4567-e89b-12d3-a456-426614174002";
-            "Id_4" = "123e4567-e89b-12d3-a456-426614174003";
-            "Name_1" = "Main";
-            "Name_2" = "Dev";
-            "Name_3" = "Communication";
-            "Name_4" = "Extra";
-          };
+          # "Desktops" = {
+          #   "Number" = 4;
+          #   "Rows" = 1;
+          #   "Id_1" = "01c1e678-8c82-4b5e-8b49-95e4c40e7d9f";
+          #   "Id_2" = "123e4567-e89b-12d3-a456-426614174001";
+          #   "Id_3" = "123e4567-e89b-12d3-a456-426614174002";
+          #   "Id_4" = "123e4567-e89b-12d3-a456-426614174003";
+          #   "Name_1" = "Main";
+          #   "Name_2" = "Dev";
+          #   "Name_3" = "Communication";
+          #   "Name_4" = "Extra";
+          # };
         };
         
         # Notifiche
