@@ -12,7 +12,7 @@
     systemd-boot = {
       enable = true;
       # Aumenta il numero di configurazioni nel menu
-      configurationLimit = 10;
+      configurationLimit = 2;
       # Editor di comandi nel menu boot (opzionale, per sicurezza puoi lasciarlo false)
       editor = false;
       # Mostra sempre il menu di boot
@@ -27,6 +27,10 @@
     # Timeout del menu di boot (in secondi)
     timeout = 5;
   };
+
+  # Comprimi gli initrd per risparmiare spazio
+  boot.initrd.compressor = "zstd";
+  boot.initrd.compressorArgs = ["-19" "-T0"];  # Massima compressione
 
   # Aggiungi il rilevamento automatico di Windows
   # boot.loader.systemd-boot.extraEntries = {
