@@ -73,7 +73,7 @@ in
                     "applications:jetbrains-rider.desktop"     # Rider
                     "applications:org.kde.konsole.desktop"     # Konsole
                     "applications:firefox.desktop"             # Firefox
-                    "applications:org.telegram.desktop.desktop" # Telegram (nome corretto)
+                    "applications:org.telegram.desktop.desktop" # Telegram
                     "applications:code.desktop"                # VS Code
                     "applications:teams-for-linux.desktop"     # Teams
                     "applications:spotify.desktop"             # Spotify
@@ -175,19 +175,9 @@ in
       };
       
       # ============================================================================
-      # KWIN - Window Manager configurations
+      # KWIN - Window Manager configurations (SEMPLIFICATO)
       # ============================================================================
       kwin = {
-        effects = {
-          blur.enable = true;
-          desktopGrid.enable = true;
-          dimInactive.enable = false;
-          presentWindows.enable = true;
-          slide.enable = true;
-          translucency.enable = true;
-          wobblyWindows.enable = false;
-        };
-        
         # Numero di desktop virtuali
         virtualDesktops = {
           rows = 1;
@@ -200,9 +190,6 @@ in
           left = [ "on-all-desktops" "keep-above-windows" ];
           right = [ "minimize" "maximize" "close" ];
         };
-        
-        # Focus delle finestre
-        focusPolicy = "click";  # o "focusFollowsMouse"
         
         # Bordi dello schermo
         borderlessMaximizedWindows = true;
@@ -219,71 +206,6 @@ in
             day = 6500;
             night = 4500;
           };
-        };
-      };
-      
-      # ============================================================================
-      # POWER MANAGEMENT - Gestione energetica
-      # ============================================================================
-      powerdevil = {
-        AC = {
-          # Quando collegato alla corrente
-          autoSuspend = {
-            action = "nothing";
-            idleTimeout = "never";
-          };
-          
-          turnOffDisplay = {
-            idleTimeout = 1800;  # 30 minuti in secondi
-            idleTimeoutWhenLocked = 300;  # 5 minuti quando bloccato
-          };
-          
-          dimDisplay = {
-            enable = true;
-            idleTimeout = 600;  # 10 minuti in secondi
-          };
-          
-          # Performance profile
-          powerProfile = "performance";
-          
-          # Gestione coperchio laptop (solo slimbook)
-          whenLaptopLidClosed = if (hostname == "slimbook") then "doNothing" else "turnOffScreen";
-        };
-        
-        battery = lib.mkIf (hostname == "slimbook") {
-          # Su batteria (solo per laptop)
-          autoSuspend = {
-            action = "sleep";
-            idleTimeout = 1800;  # 30 minuti
-          };
-          
-          turnOffDisplay = {
-            idleTimeout = 600;  # 10 minuti
-            idleTimeoutWhenLocked = 60;  # 1 minuto quando bloccato
-          };
-          
-          dimDisplay = {
-            enable = true;
-            idleTimeout = 300;  # 5 minuti
-          };
-          
-          powerProfile = "balanced";
-          
-          whenLaptopLidClosed = "sleep";
-        };
-        
-        lowBattery = lib.mkIf (hostname == "slimbook") {
-          # Batteria scarica (solo per laptop)
-          autoSuspend = {
-            action = "hibernate";
-            idleTimeout = 300;  # 5 minuti
-          };
-          
-          turnOffDisplay = {
-            idleTimeout = 120;  # 2 minuti
-          };
-          
-          powerProfile = "powerSave";
         };
       };
       
@@ -307,6 +229,71 @@ in
           };
         };
         
+        # Power Devil - Gestione energetica
+        "powermanagementprofilesrc" = {
+          # Profilo AC (corrente)
+          "AC/DPMSControl" = {
+            "idleTime" = 600;  # Dim dopo 10 minuti
+            "lockBeforeTurnOff" = 0;
+          };
+          
+          "AC/DimDisplay" = {
+            "idleTime" = 600;  # 10 minuti
+          };
+          
+          "AC/DisplayBrightness" = {
+            "value" = 100;
+          };
+          
+          "AC/HandleButtonEvents" = lib.mkIf (hostname == "slimbook") {
+            "lidAction" = 0;  # 0=niente, 1=sleep, 2=hibernate, 8=turn off screen
+            "powerButtonAction" = 1;  # 1=sleep
+          };
+          
+          "AC/SuspendSession" = {
+            "idleTime" = 1800;  # 30 minuti per spegnimento schermo
+            "suspendType" = 8;  # 8=turn off screen
+          };
+          
+          # Profilo batteria (solo laptop)
+          "Battery/DPMSControl" = lib.mkIf (hostname == "slimbook") {
+            "idleTime" = 300;  # 5 minuti
+            "lockBeforeTurnOff" = 0;
+          };
+          
+          "Battery/DimDisplay" = lib.mkIf (hostname == "slimbook") {
+            "idleTime" = 300;  # 5 minuti
+          };
+          
+          "Battery/DisplayBrightness" = lib.mkIf (hostname == "slimbook") {
+            "value" = 60;
+          };
+          
+          "Battery/HandleButtonEvents" = lib.mkIf (hostname == "slimbook") {
+            "lidAction" = 1;  # 1=sleep
+            "powerButtonAction" = 1;
+          };
+          
+          "Battery/SuspendSession" = lib.mkIf (hostname == "slimbook") {
+            "idleTime" = 600;  # 10 minuti
+            "suspendType" = 1;  # 1=sleep
+          };
+          
+          # Profilo batteria scarica
+          "LowBattery/DPMSControl" = lib.mkIf (hostname == "slimbook") {
+            "idleTime" = 120;  # 2 minuti
+          };
+          
+          "LowBattery/DisplayBrightness" = lib.mkIf (hostname == "slimbook") {
+            "value" = 30;
+          };
+          
+          "LowBattery/SuspendSession" = lib.mkIf (hostname == "slimbook") {
+            "idleTime" = 300;  # 5 minuti
+            "suspendType" = 2;  # 2=hibernate
+          };
+        };
+        
         # Screen lock settings
         "kscreenlockerrc" = {
           "Daemon" = {
@@ -317,6 +304,43 @@ in
           
           "Greeter" = {
             "Theme" = "org.kde.breezedark.desktop";
+          };
+        };
+        
+        # Effetti KWin (modo alternativo)
+        "kwinrc" = {
+          "Plugins" = {
+            "blurEnabled" = true;
+            "contrastEnabled" = true;
+            "desktopgridEnabled" = true;
+            "diminactiveEnabled" = false;
+            "kwin4_effect_dimscreenEnabled" = false;
+            "kwin4_effect_fadeEnabled" = true;
+            "kwin4_effect_squashEnabled" = false;
+            "kwin4_effect_translucencyEnabled" = true;
+            "magiclampEnabled" = false;
+            "presentwindowsEnabled" = true;
+            "slideEnabled" = true;
+            "wobblywindowsEnabled" = false;
+          };
+          
+          "Windows" = {
+            "BorderlessMaximizedWindows" = true;
+            "FocusPolicy" = "Click";
+            "RollOverDesktops" = true;
+          };
+          
+          "Desktops" = {
+            "Number" = 4;
+            "Rows" = 1;
+            "Id_1" = "01c1e678-8c82-4b5e-8b49-95e4c40e7d9f";
+            "Id_2" = "123e4567-e89b-12d3-a456-426614174001";
+            "Id_3" = "123e4567-e89b-12d3-a456-426614174002";
+            "Id_4" = "123e4567-e89b-12d3-a456-426614174003";
+            "Name_1" = "Main";
+            "Name_2" = "Dev";
+            "Name_3" = "Communication";
+            "Name_4" = "Extra";
           };
         };
         
@@ -354,28 +378,11 @@ in
           };
         };
         
-        # KDE Connect (solo per slimbook)
-        "kdeconnect" = lib.mkIf (hostname == "slimbook") {
-          "General" = {
-            "name" = "NixOS Slimbook";
-          };
-        };
-        
         # Spectacle (screenshot tool) settings
         "spectaclerc" = {
           "General" = {
             "autoSaveImage" = true;
             "clipboardGroup" = "PostScreenshotCopyImage";
-            "compressionQuality" = 90;
-            "defaultSaveLocation" = "file:///home/USERNAME/Pictures/Screenshots";
-            "filename" = "Screenshot_%Y%M%d_%H%m%S";
-            "imageFormat" = "PNG";
-            "launchAction" = "UseLastUsedCapturemode";
-            "onLaunchAction" = "DoNotTakeScreenshot";
-            "quitAfterSaveCopyExport" = false;
-            "rememberLastRectangularSelection" = true;
-            "showMagnifierChecked" = true;
-            "useReleaseToCapture" = true;
           };
           "GuiConfig" = {
             "captureDelay" = 0;
@@ -427,9 +434,6 @@ in
       kdePackages.kdialog           # Dialog boxes for scripts
       kdePackages.kwalletmanager    # Wallet manager
       kdePackages.ark               # Archive manager
-      kdePackages.kgpg              # GPG encryption
-      kdePackages.kmag              # Screen magnifier
-      kdePackages.kruler            # Screen ruler
       kdePackages.kompare           # Diff viewer
       
       # Temi e personalizzazione
