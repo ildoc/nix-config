@@ -3,14 +3,14 @@
 let
   isDesktop = hostname == "slimbook" || hostname == "gaming";
   
-  # Percorsi dei wallpaper - assicurati che esistano in /etc/nixos/assets/wallpapers/
+  # Percorsi dei wallpaper
   wallpapers = {
-    slimbook = ../../assets/wallpapers/slimbook.jpg;
-    gaming = ../../assets/wallpapers/gaming.jpg;
+    slimbook = ../assets/wallpapers/slimbook.jpg;
+    gaming = ../assets/wallpapers/gaming.jpg;
   };
   
   # Wallpaper di default se non esiste quello specifico
-  currentWallpaper = wallpapers.${hostname} or ../../assets/wallpapers/default.jpg;
+  currentWallpaper = wallpapers.${hostname} or ../assets/wallpapers/default.jpg;
 in
 {
   # Solo per sistemi con desktop KDE
@@ -70,7 +70,6 @@ in
                     # Applicazioni pinnate per Slimbook nell'ordine specifico
                     "applications:systemsettings.desktop"      # System Settings
                     "applications:org.kde.dolphin.desktop"     # Dolphin
-                    "applications:jetbrains-rider.desktop"     # Rider
                     "applications:org.kde.konsole.desktop"     # Konsole
                     "applications:firefox.desktop"             # Firefox
                     "applications:org.telegram.desktop.desktop" # Telegram
@@ -119,7 +118,7 @@ in
               name = "org.kde.plasma.digitalclock";
               config = {
                 Appearance = {
-                  dateFormat = "isoDate";
+                  dateFormat = "shortDate";
                   use24hFormat = 2;  # 0=12h, 1=Use Region Defaults, 2=24h
                   showSeconds = false;
                   showDate = true;
