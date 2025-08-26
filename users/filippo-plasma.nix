@@ -396,31 +396,31 @@ in
       # ============================================================================
       # DATA FILES - File di configurazione aggiuntivi
       # ============================================================================
-      dataFile = {
-        # Profilo Konsole personalizzato
-        "konsole/Profile 1.profile" = {
-          text = ''
-            [Appearance]
-            ColorScheme=BreezeDark
-            Font=FiraCode Nerd Font Mono,12,-1,5,50,0,0,0,0,0
+      # dataFile = {
+      #   # Profilo Konsole personalizzato
+      #   "konsole/Profile 1.profile" = {
+      #     text = ''
+      #       [Appearance]
+      #       ColorScheme=BreezeDark
+      #       Font=FiraCode Nerd Font Mono,12,-1,5,50,0,0,0,0,0
             
-            [General]
-            Name=Profile 1
-            Parent=FALLBACK/
-            TerminalColumns=120
-            TerminalRows=30
+      #       [General]
+      #       Name=Profile 1
+      #       Parent=FALLBACK/
+      #       TerminalColumns=120
+      #       TerminalRows=30
             
-            [Scrolling]
-            HistoryMode=2
-            HistorySize=10000
-            ScrollBarPosition=2
+      #       [Scrolling]
+      #       HistoryMode=2
+      #       HistorySize=10000
+      #       ScrollBarPosition=2
             
-            [Terminal Features]
-            BlinkingCursorEnabled=true
-            UrlHintsModifiers=0
-          '';
-        };
-      };
+      #       [Terminal Features]
+      #       BlinkingCursorEnabled=true
+      #       UrlHintsModifiers=0
+      #     '';
+      #   };
+      # };
     };
     
     # ============================================================================

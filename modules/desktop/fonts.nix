@@ -16,7 +16,7 @@
       liberation_ttf
       
       # Development fonts con Nerd Fonts (nuovo formato)
-      (nerdfonts.override { fonts = [ "FiraCode" "JetBrainsMono" "SourceCodePro" ]; })
+      # (nerdfonts.override { fonts = [ "FiraCode" "JetBrainsMono" "SourceCodePro" ]; })
       
       # Fonts aggiuntivi
       fira

@@ -48,7 +48,7 @@ in
   programs.zsh = {
     enable = true;
     
-    initExtra = ''
+    initContent = ''
       # Theme
       if [[ -n "$ZSH" ]]; then
         ZSH_THEME="robbyrussell"
