@@ -50,6 +50,7 @@ in
           location = "bottom";
           height = 44;
           floating = false;
+          screen = 0;  # IMPORTANTE: 0 = monitor principale, 1 = secondario, ecc.
           
           widgets = [
             # Application launcher
@@ -266,6 +267,27 @@ in
           "Windows" = {
             "BorderlessMaximizedWindows" = true;
             "FocusPolicy" = "Click";
+          };
+          
+          # Configurazione Multi-Monitor
+          "Xwayland" = {
+            "XwaylandEavesdrops" = "None";
+          };
+        };
+        
+        # Configurazione schermi e pannelli
+        "plasmashellrc" = {
+          # Assicura che il pannello rimanga sul monitor principale
+          "ScreenConnectors" = {
+            # Il monitor principale avrà l'indice 0
+            "0" = "Primary";
+          };
+          
+          # Configurazione per non spostare pannelli
+          "PlasmaViews" = {
+            "panelVisibility" = "0";  # 0 = sempre visibile
+            "alignment" = "132";  # Centro
+            "lockPanel" = true;  # Blocca il pannello
           };
         };
         
