@@ -19,12 +19,12 @@
     prismlauncher
 
     # KDE applications
-    kdePackages.kate
     kdePackages.dolphin
     kdePackages.spectacle
     kdePackages.okular
     kdePackages.gwenview
     kdePackages.konsole
+    kdePackages.kcalc
 
     # System utilities
     dconf-editor
@@ -34,5 +34,6 @@
   environment.plasma6.excludePackages = with pkgs.kdePackages; [
     elisa
     khelpcenter
+    kate
   ];
 }

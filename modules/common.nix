@@ -8,7 +8,6 @@
     ./shell.nix
     ./system-packages.nix
     ./users.nix
-    ./stylix.nix
   ];
 
   # SSH configuration

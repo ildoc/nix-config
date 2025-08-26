@@ -1,22 +1,59 @@
 { pkgs, ... }:
 
 {
-  fonts.packages = with pkgs; [
-    # System fonts
-    noto-fonts
-    noto-fonts-cjk-sans
-    noto-fonts-emoji
+  fonts = {
+    # Abilita il supporto font
+    enableDefaultPackages = true;
     
-    # Free fonts
-    liberation_ttf
+    # Pacchetti font
+    packages = with pkgs; [
+      # System fonts
+      noto-fonts
+      noto-fonts-cjk-sans
+      noto-fonts-emoji
+      
+      # Free fonts
+      liberation_ttf
+      
+      # Development fonts con Nerd Fonts (nuovo formato)
+      (nerdfonts.override { fonts = [ "FiraCode" "JetBrainsMono" "SourceCodePro" ]; })
+      
+      # Fonts aggiuntivi
+      fira
+      fira-code
+      source-code-pro
+      source-sans-pro
+      
+      # Icons
+      font-awesome
+      
+      # Microsoft compatible fonts
+      corefonts
+      vistafonts
+    ];
     
-    # Development fonts
-    fira-code
-    fira-code-symbols
-    source-code-pro
-    source-sans-pro
-    
-    # Icons
-    font-awesome
-  ];
+    # Configurazione font di default del sistema
+    fontconfig = {
+      enable = true;
+      
+      defaultFonts = {
+        serif = [ "Noto Serif" "Liberation Serif" ];
+        sansSerif = [ "Noto Sans" "Liberation Sans" ];
+        monospace = [ "FiraCode Nerd Font" "JetBrainsMono Nerd Font" ];
+        emoji = [ "Noto Color Emoji" ];
+      };
+      
+      # Miglioramenti rendering
+      antialias = true;
+      hinting = {
+        enable = true;
+        style = "slight";
+      };
+      
+      subpixel = {
+        rgba = "rgb";
+        lcdfilter = "default";
+      };
+    };
+  };
 }

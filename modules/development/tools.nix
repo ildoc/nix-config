@@ -17,6 +17,7 @@ in
     # Data processing
     jq
     yq
+    kdiff3
     
     # Container tools
     docker

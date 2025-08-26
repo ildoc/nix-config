@@ -10,18 +10,19 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    plasma-manager = {
+      url = "github:nix-community/plasma-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
+
     vscode-server = {
       url = "github:nix-community/nixos-vscode-server";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    
-    stylix = {
-      url = "github:danth/stylix/release-24.11";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, vscode-server, stylix }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, vscode-server, plasma-manager }:
     let
       system = "x86_64-linux";
       
@@ -41,8 +42,6 @@
               nixpkgs.overlays = [ overlay-unstable ];
             })
             
-            stylix.nixosModules.stylix
-            
             ./hosts/${hostname}/configuration.nix
             ./modules/common.nix
             ./modules/users/filippo.nix
@@ -61,8 +60,6 @@
               nixpkgs.overlays = [ overlay-unstable ];
             })
             
-            stylix.nixosModules.stylix
-            
             ./hosts/${hostname}/configuration.nix
             ./modules/common.nix
             ./modules/users/filippo.nix
@@ -74,7 +71,10 @@
                 useUserPackages = true;
                 users.filippo = import ./users/filippo.nix;
                 backupFileExtension = "backup";
-                extraSpecialArgs = { inherit hostname; };
+                extraSpecialArgs = { inherit hostname; };                
+                sharedModules = [
+                  plasma-manager.homeManagerModules.plasma-manager
+                ];
               };
               
               networking.hostName = hostname;

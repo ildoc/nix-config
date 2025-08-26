@@ -2,6 +2,7 @@
 
 let
   isSlimbook = hostname == "slimbook";
+  isDesktop = hostname == "slimbook" || hostname == "gaming";
   # Access centralized config through osConfig
   gitConfig = osConfig.myConfig.users.filippo or {
     gitUserName = "ildoc";
@@ -9,6 +10,9 @@ let
   };
 in
 {
+  # IMPORTA LE CONFIGURAZIONI PLASMA PER I DESKTOP
+  imports = lib.optionals isDesktop [ ./filippo-plasma.nix ];
+  
   home.username = "filippo";
   home.homeDirectory = "/home/filippo";
   
@@ -44,14 +48,14 @@ in
   programs.zsh = {
     enable = true;
     
-    initContent = ''
+    initExtra = ''
       # Theme
       if [[ -n "$ZSH" ]]; then
         ZSH_THEME="robbyrussell"
       fi
       
       # Directory shortcuts
-      alias nixconf="cd ~/nix-config"
+      alias nixconf="cd /etc/nixos"
       alias projects="cd ~/Projects"
       alias downloads="cd ~/Downloads"
       alias docs="cd ~/Documents"
