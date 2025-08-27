@@ -20,9 +20,14 @@
       url = "github:nix-community/nixos-vscode-server";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, vscode-server, plasma-manager }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, vscode-server, plasma-manager, sops-nix }:
     let
       system = "x86_64-linux";
       
@@ -45,6 +50,8 @@
             ./hosts/${hostname}/configuration.nix
             ./modules/common.nix
             ./modules/users/filippo.nix
+            sops-nix.nixosModules.sops
+            ./modules/secrets.nix
             
             { networking.hostName = hostname; }
             
@@ -63,6 +70,8 @@
             ./hosts/${hostname}/configuration.nix
             ./modules/common.nix
             ./modules/users/filippo.nix
+            sops-nix.nixosModules.sops
+            ./modules/secrets.nix
 
             home-manager.nixosModules.home-manager
             {
@@ -71,7 +80,10 @@
                 useUserPackages = true;
                 users.filippo = import ./users/filippo.nix;
                 backupFileExtension = "backup";
-                extraSpecialArgs = { inherit hostname; };                
+                extraSpecialArgs = { 
+                  inherit hostname;
+                  inherit (config.sops) secrets;
+                };                
                 sharedModules = [
                   plasma-manager.homeManagerModules.plasma-manager
                 ];
@@ -93,6 +105,7 @@
         slimbook = mkSystemWithHM "slimbook" [
           ./modules/desktop.nix
           ./modules/development.nix
+          ./modules/wireguard.nix
         ];
 
         gaming = mkSystemWithHM "gaming" [
@@ -108,6 +121,9 @@
           nixpkgs-fmt
           nix-tree
           nix-du
+          sops
+          age
+          ssh-to-age
         ];
         
         shellHook = ''
@@ -116,6 +132,9 @@
           echo "  nixpkgs-fmt *.nix  - Format nix files"
           echo "  nix-tree           - Explore dependencies"
           echo "  nix-du             - Analyze disk usage"
+          echo "  sops               - Edit secrets"
+          echo "  age-keygen         - Generate age keys"
+          echo "  ssh-to-age         - Convert SSH to age key"
         '';
       };
     };

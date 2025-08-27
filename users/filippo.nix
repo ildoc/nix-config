@@ -1,12 +1,17 @@
-{ config, pkgs, lib, hostname ? "", osConfig, ... }:
+{ config, pkgs, lib, hostname ? "", osConfig, secrets ? {}, ... }:
 
 let
   isSlimbook = hostname == "slimbook";
   isDesktop = hostname == "slimbook" || hostname == "gaming";
-  # Access centralized config through osConfig
+  
+  # Git config - email viene dai segreti (no fallback in chiaro!)
+  gitEmail = if (secrets ? "git/email" && builtins.pathExists secrets."git/email".path)
+    then builtins.readFile secrets."git/email".path
+    else "user@example.com";  # Placeholder generico, mai esposto
+    
   gitConfig = osConfig.myConfig.users.filippo or {
     gitUserName = "ildoc";
-    gitUserEmail = "il_doc@protonmail.com";
+    gitUserEmail = gitEmail;
   };
 in
 {
@@ -19,15 +24,23 @@ in
   # IMPORTANTE: Non modificare
   home.stateVersion = "25.05";
 
+  # ============================================================================
+  # GIT CONFIGURATION
+  # ============================================================================
   programs.git = {
     enable = true;
     userName = gitConfig.gitUserName;
-    userEmail = gitConfig.gitUserEmail;
+    userEmail = gitEmail;  # Ora usa il valore dal segreto
     
     extraConfig = {
       init.defaultBranch = "main";
       pull.rebase = true;
       push.autoSetupRemote = true;
+      
+      # SSH signing (opzionale, se vuoi firmare i commit)
+      commit.gpgsign = false;  # Metti true se vuoi abilitarlo
+      # user.signingkey = "~/.ssh/id_ed25519.pub";
+      # gpg.format = "ssh";
       
       alias = {
         st = "status";
@@ -45,20 +58,32 @@ in
     };
   };
 
+  # ============================================================================
+  # SHELL ENHANCEMENTS
+  # ============================================================================
   programs.zsh = {
     enable = true;
     
+    # Abilita integrazioni
+    enableCompletion = true;
+    autosuggestion.enable = true;
+    syntaxHighlighting.enable = true;
+    
     initContent = ''
-      # Theme
-      if [[ -n "$ZSH" ]]; then
-        ZSH_THEME="robbyrussell"
-      fi
+      # Theme sarà gestito da starship
       
       # Directory shortcuts
       alias nixconf="cd /etc/nixos"
       alias projects="cd ~/Projects"
       alias downloads="cd ~/Downloads"
       alias docs="cd ~/Documents"
+      
+      # Alias per i nuovi tools
+      alias ls="eza --icons"
+      alias ll="eza -la --icons"
+      alias la="eza -a --icons"
+      alias lt="eza --tree --icons"
+      alias cat="bat"
       
       # Kubernetes shortcuts
       if command -v kubectl >/dev/null 2>&1; then
@@ -110,49 +135,220 @@ in
         fi
         find "$3" -type f -exec grep -l "$1" {} \; | xargs sed -i "s/$1/$2/g"
       }
+      
+      # Quick cd con zoxide
+      eval "$(zoxide init zsh)"
     '';
     
     sessionVariables = {
       BROWSER = "firefox";
       NPM_CONFIG_PREFIX = "$HOME/.npm-global";
       VISUAL = "code";
-      EDITOR = "nano";
+      EDITOR = "code --wait";
+      SOPS_EDITOR = "code --wait";
+      SOPS_AGE_KEY_FILE = "$HOME/.config/sops/age/keys.txt";
     };
   };
 
+  # ============================================================================
+  # STARSHIP PROMPT
+  # ============================================================================
+  programs.starship = {
+    enable = true;
+    enableZshIntegration = true;
+    
+    settings = {
+      format = ''
+        [┌───────────────────>](bold blue)
+        [│](bold blue) $username$hostname$directory$git_branch$git_status$nix_shell$nodejs$python$dotnet$docker_context
+        [└─>](bold blue) $character
+      '';
+      
+      username = {
+        show_always = false;
+        style_user = "blue bold";
+        style_root = "red bold";
+        format = "[$user]($style) ";
+      };
+      
+      hostname = {
+        ssh_only = false;
+        format = "@ [$hostname](bold purple) ";
+        disabled = false;
+      };
+      
+      directory = {
+        style = "cyan bold";
+        truncation_length = 3;
+        truncate_to_repo = false;
+        format = "in [$path]($style) ";
+      };
+      
+      character = {
+        success_symbol = "[➜](bold green)";
+        error_symbol = "[➜](bold red)";
+        vicmd_symbol = "[⮜](bold yellow)";
+      };
+      
+      git_branch = {
+        symbol = " ";
+        style = "yellow bold";
+        format = "on [$symbol$branch]($style) ";
+      };
+      
+      git_status = {
+        format = "([\\[$all_status$ahead_behind\\]]($style) )";
+        conflicted = "⚔️ ";
+        ahead = "⬆️ ×\${count}";
+        behind = "⬇️ ×\${count}";
+        diverged = "🔀 ";
+        untracked = "🤷×\${count}";
+        stashed = "📦 ";
+        modified = "📝×\${count}";
+        staged = "🗃️ ×\${count}";
+        renamed = "📛×\${count}";
+        deleted = "🗑️ ×\${count}";
+        style = "red bold";
+      };
+      
+      nodejs = {
+        format = "via [⬢ $version](bold green) ";
+        detect_extensions = ["js" "mjs" "cjs" "ts" "mts" "cts"];
+      };
+      
+      python = {
+        format = "via [🐍 $version](bold yellow) ";
+      };
+      
+      dotnet = {
+        format = "via [🎯 $version](bold purple) ";
+        detect_extensions = ["csproj" "fsproj" "xproj"];
+      };
+      
+      docker_context = {
+        format = "via [🐳 $context](blue bold) ";
+        only_with_files = false;
+      };
+      
+      nix_shell = {
+        format = "via [❄️ $state( \\($name\\))](bold blue) ";
+        impure_msg = "[impure](bold red)";
+        pure_msg = "[pure](bold green)";
+      };
+      
+      # Battery for laptop
+      battery = lib.mkIf (hostname == "slimbook") {
+        full_symbol = "🔋";
+        charging_symbol = "⚡";
+        discharging_symbol = "💀";
+        display = [
+          { threshold = 10; style = "bold red"; }
+          { threshold = 30; style = "bold yellow"; }
+          { threshold = 100; style = "bold green"; }
+        ];
+      };
+      
+      time = {
+        disabled = false;
+        format = "🕙[\\[ $time \\]]($style) ";
+        time_format = "%T";
+        style = "bold yellow";
+      };
+    };
+  };
+
+  # ============================================================================
+  # ADVANCED SHELL TOOLS
+  # ============================================================================
+  
+  # BAT - Better cat
+  programs.bat = {
+    enable = true;
+    config = {
+      theme = "TwoDark";
+      paging = "never";
+      style = "numbers,changes,header";
+    };
+    extraPackages = with pkgs.bat-extras; [
+      batdiff
+      batman
+      batgrep
+      batwatch
+    ];
+  };
+  
+  # EZA - Better ls
+  programs.eza = {
+    enable = true;
+    enableZshIntegration = true;
+    git = true;
+    icons = true;
+    extraOptions = [
+      "--group-directories-first"
+      "--header"
+    ];
+  };
+  
+  # ZOXIDE - Smarter cd
+  programs.zoxide = {
+    enable = true;
+    enableZshIntegration = true;
+    options = [
+      "--cmd cd"  # Sostituisce cd con zoxide
+    ];
+  };
+  
+  # FZF - Fuzzy finder
+  programs.fzf = {
+    enable = true;
+    enableZshIntegration = true;
+    defaultCommand = "fd --type f --hidden --follow --exclude .git";
+    defaultOptions = [
+      "--height 40%"
+      "--layout=reverse"
+      "--border"
+      "--inline-info"
+      "--preview 'bat --color=always --style=numbers --line-range=:500 {}'"
+    ];
+  };
+
+  # ============================================================================
+  # PACKAGES
+  # ============================================================================
   home.packages = with pkgs; [
-    bat
-    eza
+    # Shell enhancements già configurati sopra
     fd
     ripgrep
     tldr
     jq
     yq-go
     httpie
+    
+    # Archives
     unrar
     p7zip
+    
+    # Browser
     firefox
+    
+    # Dev tools
+    lazygit
+    
+    # System tools
+    btop      # Better htop
+    duf       # Better df
+    dust      # Better du
+    procs     # Better ps
   ];
 
-  programs.bat = {
-    enable = true;
-    config = {
-      theme = "TwoDark";
-      paging = "never";
-    };
-  };
-  
-  programs.eza = {
-    enable = true;
-  };
-  
-  programs.fzf = {
-    enable = true;
-    enableZshIntegration = true;
-  };
-
+  # ============================================================================
+  # HOME MANAGER
+  # ============================================================================
   programs.home-manager.enable = true;
   
+  # ============================================================================
+  # XDG DIRECTORIES
+  # ============================================================================
   xdg = {
     enable = true;
     

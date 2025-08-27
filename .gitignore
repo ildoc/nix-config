@@ -32,3 +32,9 @@ Thumbs.db
 
 # Logs
 *.log
+
+# SOPS
+secrets/*.dec
+secrets/*.yaml.dec
+age-key.txt
+*.age
