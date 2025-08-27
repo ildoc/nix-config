@@ -30,5 +30,5 @@
   };
 
   # System version - DO NOT MODIFY
-  system.stateVersion = "24.05";
+  system.stateVersion = "25.05";
 }

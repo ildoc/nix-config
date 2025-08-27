@@ -17,7 +17,7 @@ in
   home.homeDirectory = "/home/filippo";
   
   # IMPORTANTE: Non modificare
-  home.stateVersion = "24.05";
+  home.stateVersion = "25.05";
 
   programs.git = {
     enable = true;

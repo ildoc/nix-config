@@ -15,7 +15,7 @@
       # Free fonts
       liberation_ttf
       
-      # Nerd Fonts - Usa il nuovo formato per NixOS 24.11+
+      # Nerd Fonts
       nerd-fonts.fira-code
       nerd-fonts.jetbrains-mono
       
