@@ -2,11 +2,20 @@ keys:
   - &admin age1rmaj7ayhvw9l8qtg6p9y8n8elt6xt6l7ng6suqvxsszlc83ycclspesfzc
 
 creation_rules:
+  # Regola per file YAML in secrets/
   - path_regex: secrets/.*\.yaml$
     key_groups:
       - age:
         - *admin
+  
+  # Regola per file .enc in secrets/
   - path_regex: secrets/.*\.enc$
+    key_groups:
+      - age:
+        - *admin
+  
+  # Regola per QUALSIASI file (per criptare file temporanei)
+  - path_regex: .*
     key_groups:
       - age:
         - *admin
