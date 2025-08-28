@@ -22,7 +22,7 @@ in
         networkmanager-l2tp
       ];
     };
-        
+    
     # ============================================================================
     # SERVIZIO PER IMPORTARE LA CONFIGURAZIONE IN NETWORKMANAGER
     # ============================================================================
@@ -190,7 +190,7 @@ in
       vpn-sync = "sudo systemctl start sync-wireguard-changes";
       
       # Info aliases
-      vpn-config-info = "echo 'VPN Configuration:' && echo '  Name: ${vpnConfig.connectionName}' && echo '  File: ${vpnConfig.configFile}' && echo '  Interface: ${vpnConfig.interface}' && echo '  Port: ${toString vpnConfig.port}'";
+      vpn-config-info = "echo 'VPN Configuration:' && echo '  Name: ${vpnConfig.connectionName}' && echo '  File: ${vpnConfig.configFile}' && echo '  Interface: ${vpnConfig.interface}'";
     };
     
     # ============================================================================
