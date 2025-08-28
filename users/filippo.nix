@@ -11,7 +11,7 @@ let
     
   gitConfig = osConfig.myConfig.users.filippo or {
     gitUserName = "ildoc";
-    gitUserEmail = gitEmail;
+    # gitUserEmail = gitEmail;
   };
 in
 {
@@ -29,7 +29,7 @@ in
   # ============================================================================
   programs.git = {
     enable = true;
-    userName = gitUserName;
+    userName = gitConfig.gitUserName;
     # NON impostiamo userEmail - verrà configurata dopo il primo boot
     
     extraConfig = {
@@ -282,7 +282,7 @@ in
     enable = true;
     enableZshIntegration = true;
     git = true;
-    icons = true;
+    icons = "auto";
     extraOptions = [
       "--group-directories-first"
       "--header"
