@@ -44,7 +44,8 @@
         mode = "0400";
         owner = "root";
         group = "root";
-        path = "/etc/wireguard/wg0.conf";
+        # RIMUOVI il path personalizzato per lasciare che SOPS usi il default
+        # path = "/etc/wireguard/wg0.conf";
         format = "binary";
         sopsFile = ../secrets/wg0.conf.enc;  # File criptato separato
       };
@@ -67,22 +68,39 @@
     description = "Configure Git with SOPS email";
     wantedBy = [ "multi-user.target" ];
     after = [ "sops-nix.service" ];
+    wants = [ "sops-nix.service" ];
     
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
       User = "filippo";
       Group = "users";
+      # Retry se fallisce
+      Restart = "on-failure";
+      RestartSec = "5s";
     };
     
     script = ''
-      # Attendi che il file segreto esista
-      while [ ! -f ${config.sops.secrets."git/email".path} ]; do
+      # Debug: mostra cosa abbiamo
+      echo "=== Git Config Setup Debug ==="
+      echo "Checking for SOPS email file..."
+      
+      # Attendi che il file segreto esista (max 60 secondi)
+      count=0
+      while [ ! -f ${config.sops.secrets."git/email".path} ] && [ $count -lt 60 ]; do
+        echo "Waiting for SOPS email file... ($count/60)"
         sleep 1
+        count=$((count + 1))
       done
+      
+      if [ ! -f ${config.sops.secrets."git/email".path} ]; then
+        echo "ERROR: SOPS email file not found after 60 seconds"
+        exit 1
+      fi
       
       # Leggi l'email dal segreto
       EMAIL=$(cat ${config.sops.secrets."git/email".path} | tr -d '\n')
+      echo "Found email: $EMAIL"
       
       # Configura git globalmente
       export HOME=/home/filippo
@@ -92,7 +110,9 @@
       chown filippo:users /home/filippo/.gitconfig.local
       chmod 644 /home/filippo/.gitconfig.local
       
-      echo "Git configured with email: $EMAIL"
+      echo "Git configured successfully with email: $EMAIL"
+      echo "Verification:"
+      ${pkgs.git}/bin/git config --file /home/filippo/.gitconfig.local user.email
     '';
   };
   
@@ -103,29 +123,94 @@
     description = "Generate SSH public key from private";
     wantedBy = [ "multi-user.target" ];
     after = [ "sops-nix.service" ];
+    wants = [ "sops-nix.service" ];
     
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
+      # Retry se fallisce
+      Restart = "on-failure";
+      RestartSec = "5s";
     };
     
     script = ''
-      # Attendi che il file esista
-      while [ ! -f /home/filippo/.ssh/id_ed25519 ]; do
+      echo "=== SSH Keys Setup Debug ==="
+      
+      # Attendi che il file esista (max 60 secondi)
+      count=0
+      while [ ! -f /home/filippo/.ssh/id_ed25519 ] && [ $count -lt 60 ]; do
+        echo "Waiting for SSH private key... ($count/60)"
         sleep 1
+        count=$((count + 1))
       done
       
+      if [ ! -f /home/filippo/.ssh/id_ed25519 ]; then
+        echo "ERROR: SSH private key not found after 60 seconds"
+        exit 1
+      fi
+      
       # Genera la chiave pubblica
-      if [ -f /home/filippo/.ssh/id_ed25519 ]; then
-        ${pkgs.openssh}/bin/ssh-keygen -y -f /home/filippo/.ssh/id_ed25519 > /home/filippo/.ssh/id_ed25519.pub
-        chown filippo:users /home/filippo/.ssh/id_ed25519.pub
-        chmod 644 /home/filippo/.ssh/id_ed25519.pub
-        
-        # Fix permessi chiave privata
-        chown filippo:users /home/filippo/.ssh/id_ed25519
-        chmod 600 /home/filippo/.ssh/id_ed25519
-        
-        echo "SSH keys configured successfully"
+      echo "Generating SSH public key..."
+      ${pkgs.openssh}/bin/ssh-keygen -y -f /home/filippo/.ssh/id_ed25519 > /home/filippo/.ssh/id_ed25519.pub
+      
+      # Fix permessi
+      chown filippo:users /home/filippo/.ssh/id_ed25519 /home/filippo/.ssh/id_ed25519.pub
+      chmod 600 /home/filippo/.ssh/id_ed25519
+      chmod 644 /home/filippo/.ssh/id_ed25519.pub
+      
+      echo "SSH keys configured successfully"
+      echo "Private key: $(ls -la /home/filippo/.ssh/id_ed25519)"
+      echo "Public key: $(ls -la /home/filippo/.ssh/id_ed25519.pub)"
+    '';
+  };
+  
+  # ============================================================================
+  # SERVIZIO PER SETUP WIREGUARD SYMLINK
+  # ============================================================================
+  systemd.services.setup-wireguard-config = lib.mkIf (config.networking.hostName == "slimbook") {
+    description = "Setup WireGuard configuration symlink";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "sops-nix.service" ];
+    wants = [ "sops-nix.service" ];
+    
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      # Retry se fallisce
+      Restart = "on-failure";
+      RestartSec = "5s";
+    };
+    
+    script = ''
+      echo "=== WireGuard Config Setup ==="
+      
+      # Attendi che il segreto esista (max 60 secondi)
+      count=0
+      while [ ! -f /run/secrets/wireguard_config ] && [ $count -lt 60 ]; do
+        echo "Waiting for WireGuard secret... ($count/60)"
+        sleep 1
+        count=$((count + 1))
+      done
+      
+      if [ ! -f /run/secrets/wireguard_config ]; then
+        echo "ERROR: WireGuard secret not found after 60 seconds"
+        exit 1
+      fi
+      
+      # Crea directory WireGuard
+      mkdir -p /etc/wireguard
+      
+      # Crea symlink alla configurazione
+      ln -sf /run/secrets/wireguard_config /etc/wireguard/wg0.conf
+      
+      # Verifica che il symlink funzioni
+      if [ -r /etc/wireguard/wg0.conf ]; then
+        echo "✓ WireGuard configuration linked successfully"
+        echo "Config file: $(ls -la /etc/wireguard/wg0.conf)"
+        echo "Config preview: $(head -1 /etc/wireguard/wg0.conf)"
+      else
+        echo "ERROR: WireGuard configuration symlink failed"
+        exit 1
       fi
     '';
   };

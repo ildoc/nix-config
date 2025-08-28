@@ -33,6 +33,10 @@
 
     # Boot utilities per dual boot
     efibootmgr 
+
+    # Sicurezza
+    sops
+    age
     
   ] ++ lib.optionals config.services.xserver.enable [
     numlockx
