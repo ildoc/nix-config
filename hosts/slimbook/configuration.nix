@@ -12,7 +12,7 @@
     systemd-boot = {
       enable = true;
       # Aumenta il numero di configurazioni nel menu
-      configurationLimit = 2;
+      configurationLimit = 5;
       # Editor di comandi nel menu boot (opzionale, per sicurezza puoi lasciarlo false)
       editor = false;
       # Mostra sempre il menu di boot

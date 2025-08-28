@@ -11,11 +11,8 @@
           description = "Git username for filippo";
         };
         
-        gitUserEmail = lib.mkOption {
-          type = lib.types.str;
-          default = "il_doc@protonmail.com";
-          description = "Git email for filippo";
-        };
+        # NOTA: gitUserEmail è ora gestito tramite sops-nix
+        # Il valore reale viene letto da secrets/secrets.yaml
       };
     };
   };
@@ -25,7 +22,7 @@
     myConfig = {
       users.filippo = {
         gitUserName = lib.mkDefault "ildoc";
-        gitUserEmail = lib.mkDefault "il_doc@protonmail.com";
+        # gitUserEmail viene ora da sops secrets
       };
     };
   };

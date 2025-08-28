@@ -1,12 +1,12 @@
-{ config, pkgs, lib, hostname ? "", osConfig, secrets ? {}, ... }:
+{ config, pkgs, lib, hostname ? "", osConfig, ... }:
 
 let
   isSlimbook = hostname == "slimbook";
   isDesktop = hostname == "slimbook" || hostname == "gaming";
   
-  # Git config - email viene dai segreti (no fallback in chiaro!)
-  gitEmail = if (secrets ? "git/email" && builtins.pathExists secrets."git/email".path)
-    then builtins.readFile secrets."git/email".path
+  # Accedi all'email dal segreto se disponibile
+  gitEmail = if (osConfig.sops.secrets ? "git/email") 
+    then builtins.readFile osConfig.sops.secrets."git/email".path
     else "user@example.com";  # Placeholder generico, mai esposto
     
   gitConfig = osConfig.myConfig.users.filippo or {
@@ -29,8 +29,8 @@ in
   # ============================================================================
   programs.git = {
     enable = true;
-    userName = gitConfig.gitUserName;
-    userEmail = gitEmail;  # Ora usa il valore dal segreto
+    userName = gitUserName;
+    # NON impostiamo userEmail - verrà configurata dopo il primo boot
     
     extraConfig = {
       init.defaultBranch = "main";
@@ -143,10 +143,10 @@ in
     sessionVariables = {
       BROWSER = "firefox";
       NPM_CONFIG_PREFIX = "$HOME/.npm-global";
-      VISUAL = "code";
+      VISUAL = "code --wait";
       EDITOR = "code --wait";
-      SOPS_EDITOR = "code --wait";
-      SOPS_AGE_KEY_FILE = "$HOME/.config/sops/age/keys.txt";
+      SOPS_EDITOR = "code --wait";  # Editor specifico per SOPS
+      SOPS_AGE_KEY_FILE = "$HOME/.config/sops/age/keys.txt";  # Path della chiave Age
     };
   };
 

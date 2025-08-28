@@ -82,7 +82,6 @@
                 backupFileExtension = "backup";
                 extraSpecialArgs = { 
                   inherit hostname;
-                  inherit (config.sops) secrets;
                 };                
                 sharedModules = [
                   plasma-manager.homeManagerModules.plasma-manager

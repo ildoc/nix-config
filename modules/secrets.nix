@@ -3,49 +3,55 @@
 {
   # Configurazione sops-nix per gestione segreti
   sops = {
-    # File dei segreti criptati (lo creeremo dopo)
+    # File YAML per segreti testuali (email, ecc.)
     defaultSopsFile = ../secrets/secrets.yaml;
-    
-    # Formato del file segreti
     defaultSopsFormat = "yaml";
     
-    # Percorso della chiave age sul sistema
-    # IMPORTANTE: Questa chiave NON va nel repository!
+    # Chiave Age per decriptare
     age.keyFile = "/var/lib/sops-nix/key.txt";
-    
-    # Auto genera la chiave se non esiste (solo per il primo setup)
     age.generateKey = false;
     
     # Definizione dei segreti
     secrets = {
-      # SSH private key per l'utente filippo
-      "ssh_keys/filippo_ed25519" = {
-        mode = "0600";
-        owner = config.users.users.filippo.name;
-        group = config.users.users.filippo.group;
-        # Path dove verrà montato il segreto decriptato
-        path = "/home/filippo/.ssh/id_ed25519";
-      };
+      # ====================================================================
+      # SEGRETI DA FILE YAML (secrets.yaml)
+      # ====================================================================
       
-      # Git email - verrà usato come variabile d'ambiente
+      # Git email - dal file YAML
       "git/email" = {
         mode = "0400";
         owner = config.users.users.filippo.name;
         group = config.users.users.filippo.group;
+        # Usa defaultSopsFile (secrets.yaml)
       };
       
-      "wireguard/wg0.conf" = lib.mkIf (config.networking.hostName == "slimbook") {
+      # ====================================================================
+      # SEGRETI DA FILE BINARI SEPARATI (.enc)
+      # ====================================================================
+      
+      # SSH private key - da file binario separato
+      "ssh_private_key" = {
+        mode = "0600";
+        owner = config.users.users.filippo.name;
+        group = config.users.users.filippo.group;
+        path = "/home/filippo/.ssh/id_ed25519";
+        format = "binary";
+        sopsFile = ../secrets/id_ed25519.enc;  # File criptato separato
+      };
+      
+      # WireGuard config - da file binario separato (solo per slimbook)
+      "wireguard_config" = lib.mkIf (config.networking.hostName == "slimbook") {
         mode = "0400";
         owner = "root";
         group = "root";
         path = "/etc/wireguard/wg0.conf";
-        format = "binary";  # IMPORTANTE: specifica formato binary
+        format = "binary";
         sopsFile = ../secrets/wg0.conf.enc;  # File criptato separato
       };
     };
   };
   
-  # Assicura che le directory necessarie esistano
+  # Directory necessarie
   systemd.tmpfiles.rules = [
     "d /home/filippo/.ssh 0700 filippo users -"
     "d /var/lib/sops-nix 0755 root root -"
@@ -53,9 +59,9 @@
     "d /etc/wireguard 0700 root root -"
   ];
   
-  # Servizio per configurare SSH dopo che i segreti sono stati decriptati
+  # Servizio per generare la chiave pubblica SSH
   systemd.services.setup-ssh-keys = {
-    description = "Setup SSH keys from sops";
+    description = "Generate SSH public key from private";
     wantedBy = [ "multi-user.target" ];
     after = [ "sops-nix.service" ];
     
@@ -65,42 +71,21 @@
     };
     
     script = ''
-      # Assicura i permessi corretti per la directory SSH
-      chown filippo:users /home/filippo/.ssh
-      chmod 700 /home/filippo/.ssh
+      # Attendi che il file esista
+      while [ ! -f /home/filippo/.ssh/id_ed25519 ]; do
+        sleep 1
+      done
       
-      # Se esiste la chiave privata, genera anche la pubblica
+      # Genera la chiave pubblica
       if [ -f /home/filippo/.ssh/id_ed25519 ]; then
         ${pkgs.openssh}/bin/ssh-keygen -y -f /home/filippo/.ssh/id_ed25519 > /home/filippo/.ssh/id_ed25519.pub
         chown filippo:users /home/filippo/.ssh/id_ed25519.pub
         chmod 644 /home/filippo/.ssh/id_ed25519.pub
+        
+        # Fix permessi chiave privata
+        chown filippo:users /home/filippo/.ssh/id_ed25519
+        chmod 600 /home/filippo/.ssh/id_ed25519
       fi
     '';
-  };
-  
-  # WireGuard configuration usando i segreti (solo per slimbook)
-  networking.wireguard = lib.mkIf (config.networking.hostName == "slimbook") {
-    enable = true;
-    
-    interfaces = {
-      wg0 = {
-        # La chiave privata verrà letta dal segreto
-        privateKeyFile = config.sops.secrets."wireguard/slimbook_private_key".path;
-        
-        # Configurazione dell'interfaccia
-        # Questi valori dovrai personalizzarli
-        ips = [ "10.100.0.2/32" ];
-        
-        peers = [
-          {
-            # Esempio peer - sostituisci con i tuoi valori reali
-            publicKey = "PEER_PUBLIC_KEY_QUI";
-            allowedIPs = [ "10.100.0.0/24" ];
-            endpoint = "vpn.example.com:51820";
-            persistentKeepalive = 25;
-          }
-        ];
-      };
-    };
   };
 }
