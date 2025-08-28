@@ -3,6 +3,7 @@
 {
   imports = [
     ./config.nix
+    ./config/vpn.nix
     ./locale.nix
     ./nix-config.nix
     ./shell.nix

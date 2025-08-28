@@ -186,6 +186,16 @@
     ];
   };
 
+  # ============================================================================
+  # PERSONALIZZAZIONE VPN PER SLIMBOOK
+  # ============================================================================
+  myConfig.vpn = {
+    connectionName = "Wg Casa";    # Nome personalizzato per questo host
+    configFile = "wg0.conf";       # File rimane lo stesso
+    interface = "wg0";             # Interface rimane la stessa
+    description = "Wireguard server di casa";
+  };
+
   # Enable WireGuard kernel module
   boot.kernelModules = [ "wireguard" ];
 }
