@@ -1,5 +1,5 @@
 {
-  description = "Configurazione NixOS multi-host di Filippo";
+  description = "NixOS Configuration - Modular and DRY";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
@@ -27,94 +27,108 @@
     };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, vscode-server, plasma-manager, sops-nix }:
+  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, vscode-server, plasma-manager, sops-nix }@inputs:
     let
       system = "x86_64-linux";
       
+      # Import delle configurazioni centralizzate
+      config = import ./config { inherit (nixpkgs) lib; };
+      
+      # Overlay per unstable packages
       overlay-unstable = final: prev: {
         unstable = import nixpkgs-unstable {
           inherit system;
           config.allowUnfree = true;
         };
       };
-
-      mkSystemBase = hostname: modules:
+      
+      # Funzione helper per creare sistemi
+      mkHost = { hostname, profile, extraModules ? [], enableHomeManager ? true }:
         nixpkgs.lib.nixosSystem {
           inherit system;
           
-          modules = [
-            ({ config, pkgs, ... }: {
-              nixpkgs.overlays = [ overlay-unstable ];
-            })
-            
-            ./hosts/${hostname}/configuration.nix
-            ./modules/common.nix
-            ./modules/users/filippo.nix
-            sops-nix.nixosModules.sops
-            ./modules/secrets.nix
-            
-            { networking.hostName = hostname; }
-            
-          ] ++ modules;
-        };
-
-      mkSystemWithHM = hostname: modules:
-        nixpkgs.lib.nixosSystem {
-          inherit system;
+          specialArgs = { 
+            inherit inputs config;
+            hostConfig = config.hosts.${hostname};
+          };
           
           modules = [
-            ({ config, pkgs, ... }: {
-              nixpkgs.overlays = [ overlay-unstable ];
-            })
+            # Overlay
+            { nixpkgs.overlays = [ overlay-unstable ]; }
             
-            ./hosts/${hostname}/configuration.nix
-            ./modules/common.nix
-            ./modules/users/filippo.nix
+            # Core modules
+            ./modules/core
+            
+            # Profile (laptop/desktop/server)
+            ./profiles/${profile}.nix
+            
+            # Host specific configuration
+            ./hosts/${profile}/${hostname}
+            
+            # Secrets management
             sops-nix.nixosModules.sops
-            ./modules/secrets.nix
-
+            ./modules/core/security.nix
+            
+            # User configuration
+            ./users/filippo
+            
+            # Home Manager (se abilitato)
+          ] ++ nixpkgs.lib.optionals enableHomeManager [
             home-manager.nixosModules.home-manager
             {
               home-manager = {
                 useGlobalPkgs = true;
                 useUserPackages = true;
-                users.filippo = import ./users/filippo.nix;
+                users.filippo = import ./users/filippo/home.nix;
                 backupFileExtension = "backup";
                 extraSpecialArgs = { 
-                  inherit hostname;
-                };                
+                  inherit inputs config hostname;
+                  hostConfig = config.hosts.${hostname};
+                };
                 sharedModules = [
                   plasma-manager.homeManagerModules.plasma-manager
                 ];
               };
-              
-              networking.hostName = hostname;
             }
-            
-          ] ++ modules;
+          ] ++ extraModules;
         };
+        
     in {
+      # Host definitions
       nixosConfigurations = {
-        dev-server = mkSystemBase "dev-server" [
-          ./modules/server.nix
-          ./modules/development.nix
-          vscode-server.nixosModules.default
-        ];
-
-        slimbook = mkSystemWithHM "slimbook" [
-          ./modules/desktop.nix
-          ./modules/development.nix
-          ./modules/wireguard.nix
-        ];
-
-        gaming = mkSystemWithHM "gaming" [
-          ./modules/desktop.nix
-          ./modules/gaming.nix
-        ];
+        # Laptops
+        slimbook = mkHost {
+          hostname = "slimbook";
+          profile = "laptop";
+          extraModules = [
+            ./modules/services/wireguard.nix
+            ./modules/development
+          ];
+        };
+        
+        # Desktops
+        gaming = mkHost {
+          hostname = "gaming";
+          profile = "desktop";
+          extraModules = [
+            ./modules/gaming
+          ];
+        };
+        
+        # Servers
+        dev-server = mkHost {
+          hostname = "dev-server";
+          profile = "server";
+          enableHomeManager = false;
+          extraModules = [
+            ./modules/development
+            vscode-server.nixosModules.default
+            ./modules/services/vscode-server.nix
+          ];
+        };
       };
       
-      formatter.${system} = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
-      
+      # Development shell
       devShells.${system}.default = nixpkgs.legacyPackages.${system}.mkShell {
         buildInputs = with nixpkgs.legacyPackages.${system}; [
           nixpkgs-fmt
@@ -128,13 +142,18 @@
         shellHook = ''
           echo "🚀 NixOS Configuration Development Shell"
           echo "Available commands:"
-          echo "  nixpkgs-fmt *.nix  - Format nix files"
-          echo "  nix-tree           - Explore dependencies"
-          echo "  nix-du             - Analyze disk usage"
-          echo "  sops               - Edit secrets"
-          echo "  age-keygen         - Generate age keys"
-          echo "  ssh-to-age         - Convert SSH to age key"
+          echo "  nixpkgs-fmt  - Format nix files"
+          echo "  nix-tree     - Explore dependencies"
+          echo "  sops         - Edit secrets"
+          echo ""
+          echo "Quick commands:"
+          echo "  rebuild      - Rebuild current host"
+          echo "  update       - Update flake inputs"
+          echo "  check        - Check configuration"
         '';
       };
+      
+      # Formatter
+      formatter.${system} = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
     };
 }
