@@ -59,7 +59,46 @@
     "d /etc/wireguard 0700 root root -"
   ];
   
-  # Servizio per generare la chiave pubblica SSH
+  # ============================================================================
+  # SERVIZIO PER CONFIGURAZIONE GIT
+  # ============================================================================
+  # Questo servizio legge l'email da sops e la configura in git
+  systemd.services.setup-git-config = {
+    description = "Configure Git with SOPS email";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "sops-nix.service" ];
+    
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      User = "filippo";
+      Group = "users";
+    };
+    
+    script = ''
+      # Attendi che il file segreto esista
+      while [ ! -f ${config.sops.secrets."git/email".path} ]; do
+        sleep 1
+      done
+      
+      # Leggi l'email dal segreto
+      EMAIL=$(cat ${config.sops.secrets."git/email".path} | tr -d '\n')
+      
+      # Configura git globalmente
+      export HOME=/home/filippo
+      ${pkgs.git}/bin/git config --file /home/filippo/.gitconfig.local user.email "$EMAIL"
+      
+      # Assicurati che il file abbia i permessi corretti
+      chown filippo:users /home/filippo/.gitconfig.local
+      chmod 644 /home/filippo/.gitconfig.local
+      
+      echo "Git configured with email: $EMAIL"
+    '';
+  };
+  
+  # ============================================================================
+  # SERVIZIO PER SETUP SSH KEYS
+  # ============================================================================
   systemd.services.setup-ssh-keys = {
     description = "Generate SSH public key from private";
     wantedBy = [ "multi-user.target" ];
@@ -85,6 +124,8 @@
         # Fix permessi chiave privata
         chown filippo:users /home/filippo/.ssh/id_ed25519
         chmod 600 /home/filippo/.ssh/id_ed25519
+        
+        echo "SSH keys configured successfully"
       fi
     '';
   };

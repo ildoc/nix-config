@@ -6,13 +6,19 @@ al primo avvio modificare /etc/nixos/configurations.txt aggiungendo git ai packa
 
 dopodichè sudo nixos-rebuild switch
 
-poi
+poi piazzare in ~/.config/sops/age/keys.txt il file con la chiave age e successivamente
 
-git clone 
+cd ~
+git clone https://gitlab.local.ildoc.it/ildoc/nix-config.git
+cd nix-config
+rm hosts/[nomehost]/hardware-configuration.nix
+sudo cp /etc/nixos/hardware-configuration.nix hosts/[nomehost]
+sudo rm /etc/nixos/*
+sudo ln -s flake.nix /etc/nixos/flake.nix
+sudo nixos-rebuild switch .#[nomehost]
 
 
 
-piazzare in ~/.config/sops/age/keys.txt il file con la chiave age
 
 
 ## Gestione dei secret
