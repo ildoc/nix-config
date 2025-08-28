@@ -89,23 +89,12 @@
         fi
       }
       
-      # Host-specific configuration
-      case "$HOSTNAME" in
-        "slimbook")
-          export KUBE_EDITOR="nano"
-          export EDITOR="nano"
-          export VISUAL="nano"
-          if [[ "$USER" != "root" ]]; then
-            alias rider="nohup rider > /dev/null 2>&1 &"
-          fi
-          ;;
-      esac
-      
       # User PATH
       if [[ "$USER" != "root" ]]; then
         export PATH="$HOME/.local/bin:$PATH"
-        DEFAULT_USER="filippo"
       fi
     '';
   };
+  
+  users.users.root.shell = pkgs.zsh;
 }
