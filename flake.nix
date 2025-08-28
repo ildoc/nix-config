@@ -67,7 +67,6 @@
             
             # Secrets management
             sops-nix.nixosModules.sops
-            ./modules/core/security.nix
             
             # User configuration
             ./users/filippo
@@ -137,6 +136,7 @@
           sops
           age
           ssh-to-age
+          jq
         ];
         
         shellHook = ''
@@ -147,13 +147,14 @@
           echo "  sops         - Edit secrets"
           echo ""
           echo "Quick commands:"
-          echo "  rebuild      - Rebuild current host"
-          echo "  update       - Update flake inputs"
-          echo "  check        - Check configuration"
+          echo "  rebuild      - make rebuild"
+          echo "  update       - make update"
+          echo "  check        - make check"
+          echo "  clean        - make clean"
         '';
       };
       
       # Formatter
-      formatter.${system} = nixpkgs.legacyPackages.${system}.nixpkgs-fmt;
+      formatter.${system} = nixpkgs.legacyPackages.${system}.nixfmt-rfc-style;
     };
 }

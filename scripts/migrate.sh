@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Script di migrazione alla nuova struttura modulare NixOS
 
+# Script per completare la migrazione alla nuova struttura modulare NixOS
 set -e
 
 # Colori
@@ -10,8 +10,8 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-echo -e "${GREEN}=== NixOS Configuration Migration Script ===${NC}"
-echo -e "${YELLOW}Questo script ti aiuterà a migrare alla nuova struttura modulare${NC}\n"
+echo -e "${GREEN}=== NixOS Configuration Migration Completion Script ===${NC}"
+echo -e "${YELLOW}Questo script completerà la migrazione alla struttura modulare${NC}\n"
 
 # Controllo se siamo nella directory corretta
 if [ ! -f "flake.nix" ]; then
@@ -19,149 +19,162 @@ if [ ! -f "flake.nix" ]; then
     exit 1
 fi
 
-# Backup
-echo -e "${BLUE}1. Creazione backup...${NC}"
-BACKUP_DIR="../nix-config-backup-$(date +%Y%m%d-%H%M%S)"
-cp -r . "$BACKUP_DIR"
-echo -e "${GREEN}   ✓ Backup creato in: $BACKUP_DIR${NC}"
-
-# Creazione nuova struttura
-echo -e "\n${BLUE}2. Creazione struttura directory...${NC}"
-
-# Directory principali
-directories=(
-    "config"
-    "lib"
-    "overlays"
-    "profiles"
-    "scripts"
-    "modules/core"
-    "modules/hardware"
-    "modules/desktop"
-    "modules/services"
-    "modules/development"
-    "modules/gaming"
-    "hosts/laptop/slimbook"
-    "hosts/desktop/gaming"
-    "hosts/server/dev-server"
-    "users/filippo"
-    "users/modules"
-    "assets/wallpapers"
-)
-
-for dir in "${directories[@]}"; do
-    mkdir -p "$dir"
-    echo -e "   ${GREEN}✓${NC} Creata: $dir"
-done
-
-# Mapping dei file esistenti
-echo -e "\n${BLUE}3. Migrazione file esistenti...${NC}"
-
-# Funzione helper per spostare file
-move_if_exists() {
-    local source=$1
-    local dest=$2
-    if [ -f "$source" ]; then
-        cp "$source" "$dest"
-        echo -e "   ${GREEN}✓${NC} Migrato: $source → $dest"
+# Funzione helper per creare directory
+create_dir() {
+    local dir=$1
+    if [ ! -d "$dir" ]; then
+        mkdir -p "$dir"
+        echo -e "   ${GREEN}✓${NC} Creata: $dir"
+    else
+        echo -e "   ${BLUE}ℹ${NC} Già esistente: $dir"
     fi
 }
 
-# Hardware configurations
-move_if_exists "hosts/slimbook/hardware-configuration.nix" "hosts/laptop/slimbook/hardware-configuration.nix"
-move_if_exists "hosts/gaming/hardware-configuration.nix" "hosts/desktop/gaming/hardware-configuration.nix"
-move_if_exists "hosts/dev-server/hardware-configuration.nix" "hosts/server/dev-server/hardware-configuration.nix"
+# Funzione helper per creare file se non esiste
+create_file_if_not_exists() {
+    local file=$1
+    local content=$2
+    if [ ! -f "$file" ]; then
+        echo "$content" > "$file"
+        echo -e "   ${GREEN}✓${NC} Creato: $file"
+    else
+        echo -e "   ${BLUE}ℹ${NC} Già esistente: $file"
+    fi
+}
 
-# Secrets
-echo -e "\n${BLUE}4. Mantenimento secrets...${NC}"
-if [ -d "secrets" ]; then
-    echo -e "   ${GREEN}✓${NC} Directory secrets mantenuta"
+echo -e "${BLUE}1. Creazione directory mancanti...${NC}"
+
+# Hardware modules
+create_dir "modules/hardware"
+
+echo -e "\n${BLUE}2. Controllo file moduli hardware...${NC}"
+
+# Controlla se esistono i moduli hardware
+hardware_modules=(
+    "modules/hardware/audio.nix"
+    "modules/hardware/bluetooth.nix" 
+    "modules/hardware/graphics.nix"
+    "modules/hardware/power.nix"
+)
+
+for module in "${hardware_modules[@]}"; do
+    if [ ! -f "$module" ]; then
+        echo -e "   ${YELLOW}⚠${NC}  Mancante: $module - Crealo usando i template forniti"
+    else
+        echo -e "   ${GREEN}✓${NC} Esistente: $module"
+    fi
+done
+
+echo -e "\n${BLUE}3. Controllo moduli desktop...${NC}"
+
+if [ ! -f "modules/desktop/kde.nix" ]; then
+    echo -e "   ${YELLOW}⚠${NC}  Mancante: modules/desktop/kde.nix - Crealo usando il template fornito"
+else
+    echo -e "   ${GREEN}✓${NC} Esistente: modules/desktop/kde.nix"
 fi
 
-# Creazione file README per ogni directory
-echo -e "\n${BLUE}5. Creazione file README...${NC}"
+echo -e "\n${BLUE}4. Controllo servizi...${NC}"
 
-cat > "profiles/README.md" << 'EOF'
-# Profiles
+if [ ! -f "modules/services/vscode-server.nix" ]; then
+    echo -e "   ${YELLOW}⚠${NC}  Mancante: modules/services/vscode-server.nix - Crealo per il server dev"
+else
+    echo -e "   ${GREEN}✓${NC} Esistente: modules/services/vscode-server.nix"
+fi
 
-Configurazioni per tipo di macchina:
-- `base.nix`: Configurazione comune a tutti gli host
-- `laptop.nix`: Configurazioni specifiche per laptop
-- `desktop.nix`: Configurazioni specifiche per desktop
-- `server.nix`: Configurazioni specifiche per server
-EOF
+echo -e "\n${BLUE}5. Controllo configurazione centralizzata...${NC}"
 
-cat > "modules/README.md" << 'EOF'
-# Modules
+# Verifica config/default.nix
+if [ -f "config/default.nix" ]; then
+    echo -e "   ${GREEN}✓${NC} config/default.nix presente"
+else
+    echo -e "   ${RED}✗${NC} config/default.nix mancante - CRITICO!"
+fi
 
-Moduli riutilizzabili organizzati per categoria:
-- `core/`: Configurazioni base del sistema
-- `hardware/`: Configurazioni hardware
-- `desktop/`: Desktop environment e GUI
-- `services/`: Servizi di sistema
-- `development/`: Ambienti di sviluppo
-- `gaming/`: Configurazioni gaming
-EOF
+echo -e "\n${BLUE}6. Verifica struttura host...${NC}"
 
-cat > "hosts/README.md" << 'EOF'
-# Hosts
+# Controlla struttura hosts
+host_dirs=(
+    "hosts/laptop/slimbook"
+    "hosts/desktop/gaming" 
+    "hosts/server/dev-server"
+)
 
-Configurazioni specifiche per host, organizzate per tipo:
-- `laptop/`: Laptop e notebook
-- `desktop/`: Desktop e workstation
-- `server/`: Server headless
+for host_dir in "${host_dirs[@]}"; do
+    if [ -d "$host_dir" ]; then
+        echo -e "   ${GREEN}✓${NC} $host_dir"
+        
+        # Controlla default.nix e hardware-configuration.nix
+        if [ -f "$host_dir/default.nix" ]; then
+            echo -e "     ${GREEN}✓${NC} $host_dir/default.nix"
+        else
+            echo -e "     ${YELLOW}⚠${NC}  $host_dir/default.nix mancante"
+        fi
+        
+        if [ -f "$host_dir/hardware-configuration.nix" ]; then
+            echo -e "     ${GREEN}✓${NC} $host_dir/hardware-configuration.nix"
+        else
+            echo -e "     ${RED}✗${NC} $host_dir/hardware-configuration.nix MANCANTE!"
+        fi
+    else
+        echo -e "   ${RED}✗${NC} $host_dir mancante"
+    fi
+done
 
-Ogni host contiene solo:
-- `default.nix`: Override specifici dell'host
-- `hardware-configuration.nix`: Configurazione hardware generata
-EOF
+echo -e "\n${BLUE}7. Controllo users configuration...${NC}"
 
-echo -e "   ${GREEN}✓${NC} README creati"
+if [ -f "users/filippo/default.nix" ] && [ -f "users/filippo/home.nix" ]; then
+    echo -e "   ${GREEN}✓${NC} Configurazione utente filippo completa"
+else
+    echo -e "   ${YELLOW}⚠${NC}  Configurazione utente filippo incompleta"
+fi
 
-# Creazione file di esempio
-echo -e "\n${BLUE}6. Creazione file di configurazione...${NC}"
+echo -e "\n${BLUE}8. Controllo secrets...${NC}"
 
-# Crea un makefile per comandi comuni
-cat > "Makefile" << 'EOF'
-# NixOS Configuration Makefile
+secrets=(
+    "secrets/secrets.yaml"
+    "secrets/id_ed25519.enc"
+    "secrets/wg0.conf.enc"
+    ".sops.yaml"
+)
 
-HOSTNAME := $(shell hostname)
-FLAKE := /etc/nixos
+for secret in "${secrets[@]}"; do
+    if [ -f "$secret" ]; then
+        echo -e "   ${GREEN}✓${NC} $secret"
+    else
+        echo -e "   ${YELLOW}⚠${NC}  $secret mancante"
+    fi
+done
 
-.PHONY: help
-help:
-	@echo "NixOS Configuration Management"
-	@echo ""
-	@echo "Comandi disponibili:"
-	@echo "  make rebuild    - Rebuild e switch configurazione"
-	@echo "  make test       - Test configurazione"
-	@echo "  make update     - Update flake inputs"
-	@echo "  make clean      - Garbage collection"
-	@echo "  make check      - Check configurazione"
-	@echo "  make diff       - Mostra differenze con sistema attuale"
+echo -e "\n${BLUE}9. Test configurazione...${NC}"
 
-.PHONY: rebuild
-rebuild:
-	sudo nixos-rebuild switch --flake .#$(HOSTNAME)
+echo -e "   ${YELLOW}Eseguendo nix flake check...${NC}"
+if nix flake check 2>/dev/null; then
+    echo -e "   ${GREEN}✓${NC} Flake check superato!"
+else
+    echo -e "   ${RED}✗${NC} Flake check fallito - controlla gli errori"
+fi
 
-.PHONY: test
-test:
-	sudo nixos-rebuild test --flake .#$(HOSTNAME)
+echo -e "\n${GREEN}=== REPORT MIGRAZIONE ===${NC}"
 
-.PHONY: update
-update:
-	nix flake update
+echo -e "\n${GREEN}✅ COMPLETATI:${NC}"
+echo "  • Struttura directory modulare"
+echo "  • Configurazione centralizzata"
+echo "  • Profiles per tipologie macchine"
+echo "  • Gestione secrets SOPS"
+echo "  • Home Manager integrato"
+echo "  • Makefile per gestione comandi"
 
-.PHONY: clean
-clean:
-	sudo nix-collect-garbage -d
-	sudo nix-store --optimise
+echo -e "\n${YELLOW}📋 AZIONI RICHIESTE:${NC}"
+echo "  1. Crea i moduli hardware mancanti usando i template forniti"
+echo "  2. Verifica che tutti gli hardware-configuration.nix siano presenti"
+echo "  3. Testa la configurazione: nix flake check"
+echo "  4. Fai rebuild di test: make test"
 
-.PHONY: check
-check:
-	nix flake check
+echo -e "\n${BLUE}🚀 PROSSIMI PASSI:${NC}"
+echo "  1. make test          # Test configurazione"
+echo "  2. make rebuild       # Apply configurazione"
+echo "  3. make clean         # Pulizia sistema"
+echo "  4. make update        # Aggiornamento sistema"
 
-.PHONY: diff
-diff:
-	nixos-rebuild build --flake .#$(HOSTNAME)
-	nix store diff-closures /run/current-system ./result
+echo -e "\n${GREEN}La migrazione è quasi completa! 🎉${NC}"
+echo -e "${YELLOW}Completa i moduli mancanti e testa la configurazione.${NC}"
