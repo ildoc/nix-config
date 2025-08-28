@@ -30,16 +30,10 @@
   hardware.enableRedistributableFirmware = true;
 
   # ============================================================================
-  # WIREGUARD CONFIGURATION
-  # ============================================================================
-  # Usa la configurazione centralizzata
-  myConfig.vpn = hostConfig.vpn;
-
-  # ============================================================================
   # SLIMBOOK-SPECIFIC PACKAGES
   # ============================================================================
   environment.systemPackages = with pkgs; 
-    hostConfig.applications.additional ++ [
+    (hostConfig.applications.additional or []) ++ [
       # Aggiungi qui eventuali pacchetti specifici solo per questo slimbook
       unstable.jetbrains.rider
       teams-for-linux

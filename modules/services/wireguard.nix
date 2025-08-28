@@ -2,49 +2,19 @@
 
 let
   cfg = inputs.config;
-  vpnConfig = hostConfig.vpn or null;
   isEnabled = hostConfig.features.wireguard or false;
 in
 {
-  # ============================================================================
-  # WIREGUARD OPTIONS
-  # ============================================================================
-  options.myConfig.vpn = {
-    connectionName = lib.mkOption {
-      type = lib.types.str;
-      default = vpnConfig.connectionName or "office-vpn";
-      description = "Nome della connessione VPN in NetworkManager";
-    };
-    
-    configFile = lib.mkOption {
-      type = lib.types.str;
-      default = vpnConfig.configFile or "wg0.conf";
-      description = "Nome del file di configurazione WireGuard";
-    };
-    
-    interface = lib.mkOption {
-      type = lib.types.str;
-      default = vpnConfig.interface or "wg0";
-      description = "Nome dell'interfaccia WireGuard";
-    };
-    
-    description = lib.mkOption {
-      type = lib.types.str;
-      default = vpnConfig.description or "Office VPN Connection";
-      description = "Descrizione della connessione VPN";
-    };
-  };
-
-  # ============================================================================
-  # WIREGUARD CONFIGURATION
-  # ============================================================================
+  # Solo configurazione, non opzioni aggiuntive
   config = lib.mkIf isEnabled {
+    # ============================================================================
+    # WIREGUARD CONFIGURATION
+    # ============================================================================
     # Kernel module
     boot.kernelModules = [ "wireguard" ];
     
     # NetworkManager plugins
     networking.networkmanager = {
-      enable = true;
       plugins = with pkgs; [
         networkmanager-openvpn
         networkmanager-l2tp
@@ -71,12 +41,15 @@ in
         TimeoutStartSec = "60s";
       };
       
-      script = ''
+      script = let
+        vpnName = hostConfig.vpn.connectionName or "Wg Casa";
+        configFile = hostConfig.vpn.configFile or "wg0.conf";
+      in ''
         set -e
         
         echo "=== WireGuard NetworkManager Import ==="
-        echo "VPN Name: ${config.myConfig.vpn.connectionName}"
-        echo "Config File: ${config.myConfig.vpn.configFile}"
+        echo "VPN Name: ${vpnName}"
+        echo "Config File: ${configFile}"
         
         # Wait for NetworkManager
         count=0
@@ -88,35 +61,35 @@ in
         
         # Wait for config file
         count=0
-        while [ ! -f /etc/wireguard/${config.myConfig.vpn.configFile} ] && [ $count -lt 60 ]; do
+        while [ ! -f /etc/wireguard/${configFile} ] && [ $count -lt 60 ]; do
           echo "Waiting for WireGuard config... ($count/60)"
           sleep 1
           count=$((count + 1))
         done
         
-        if [ ! -f /etc/wireguard/${config.myConfig.vpn.configFile} ]; then
+        if [ ! -f /etc/wireguard/${configFile} ]; then
           echo "ERROR: WireGuard config file not found"
           exit 1
         fi
         
         # Check if connection exists
-        if ${pkgs.networkmanager}/bin/nmcli connection show "${config.myConfig.vpn.connectionName}" >/dev/null 2>&1; then
+        if ${pkgs.networkmanager}/bin/nmcli connection show "${vpnName}" >/dev/null 2>&1; then
           echo "Updating existing connection..."
-          ${pkgs.networkmanager}/bin/nmcli connection delete "${config.myConfig.vpn.connectionName}" || true
+          ${pkgs.networkmanager}/bin/nmcli connection delete "${vpnName}" || true
         fi
         
         # Import configuration
         echo "Importing WireGuard configuration..."
-        ${pkgs.networkmanager}/bin/nmcli connection import type wireguard file /etc/wireguard/${config.myConfig.vpn.configFile}
+        ${pkgs.networkmanager}/bin/nmcli connection import type wireguard file /etc/wireguard/${configFile}
         
         # Rename if necessary
-        imported_name=$(basename ${config.myConfig.vpn.configFile} .conf)
-        if [ "${config.myConfig.vpn.connectionName}" != "$imported_name" ]; then
-          ${pkgs.networkmanager}/bin/nmcli connection modify "$imported_name" connection.id "${config.myConfig.vpn.connectionName}"
+        imported_name=$(basename ${configFile} .conf)
+        if [ "${vpnName}" != "$imported_name" ]; then
+          ${pkgs.networkmanager}/bin/nmcli connection modify "$imported_name" connection.id "${vpnName}"
         fi
         
         # Configure for manual activation
-        ${pkgs.networkmanager}/bin/nmcli connection modify "${config.myConfig.vpn.connectionName}" connection.autoconnect no
+        ${pkgs.networkmanager}/bin/nmcli connection modify "${vpnName}" connection.autoconnect no
         
         echo "✓ WireGuard successfully imported into NetworkManager!"
       '';
@@ -125,11 +98,13 @@ in
     # ============================================================================
     # VPN ALIASES
     # ============================================================================
-    environment.shellAliases = {
-      vpn-connect = "nmcli connection up '${config.myConfig.vpn.connectionName}'";
-      vpn-disconnect = "nmcli connection down '${config.myConfig.vpn.connectionName}'";
-      vpn-status = "nmcli connection show --active | grep '${config.myConfig.vpn.connectionName}' || echo 'VPN not connected'";
-      vpn-info = "nmcli connection show '${config.myConfig.vpn.connectionName}'";
+    environment.shellAliases = let
+      vpnName = hostConfig.vpn.connectionName or "Wg Casa";
+    in {
+      vpn-connect = "nmcli connection up '${vpnName}'";
+      vpn-disconnect = "nmcli connection down '${vpnName}'";
+      vpn-status = "nmcli connection show --active | grep '${vpnName}' || echo 'VPN not connected'";
+      vpn-info = "nmcli connection show '${vpnName}'";
       vpn-logs = "journalctl -f -u NetworkManager | grep -i wireguard";
       wg-show = "sudo wg show";
     };

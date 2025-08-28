@@ -56,7 +56,7 @@
             # Overlay
             { nixpkgs.overlays = [ overlay-unstable ]; }
             
-            # Core modules
+            # Core modules (include già security.nix)
             ./modules/core
             
             # Profile (laptop/desktop/server)
@@ -65,7 +65,7 @@
             # Host specific configuration
             ./hosts/${profile}/${hostname}
             
-            # Secrets management
+            # Secrets management - SOLO il modulo SOPS
             sops-nix.nixosModules.sops
             
             # User configuration
@@ -147,10 +147,9 @@
           echo "  sops         - Edit secrets"
           echo ""
           echo "Quick commands:"
-          echo "  rebuild      - make rebuild"
-          echo "  update       - make update"
-          echo "  check        - make check"
-          echo "  clean        - make clean"
+          echo "  make rebuild - Rebuild current host"
+          echo "  make update  - Update flake inputs"
+          echo "  make check   - Check configuration"
         '';
       };
       
