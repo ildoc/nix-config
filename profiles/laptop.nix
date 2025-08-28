@@ -4,8 +4,6 @@
   imports = [
     ./base.nix
     ../modules/desktop
-    ../modules/hardware/power.nix
-    ../modules/hardware/bluetooth.nix
   ];
 
   # ============================================================================
@@ -72,8 +70,8 @@
       CPU_SCALING_MAX_FREQ_ON_BAT = 2400000;
       
       # Battery Thresholds
-      START_CHARGE_THRESH_BAT0 = 20;
-      STOP_CHARGE_THRESH_BAT0 = 80;
+      START_CHARGE_THRESH_BAT0 = lib.mkIf (hostConfig.hardware.hasBattery or false) 20;
+      STOP_CHARGE_THRESH_BAT0 = lib.mkIf (hostConfig.hardware.hasBattery or false) 80;
       
       # USB Power
       USB_AUTOSUSPEND = 1;
@@ -152,18 +150,6 @@
     "vm.vfs_cache_pressure" = 50;
     "vm.laptop_mode" = 5;
   };
-
-  # ============================================================================
-  # FIX BOOT ORDER (per dual boot con Windows)
-  # ============================================================================
-  system.activationScripts.fixBootOrder = lib.mkIf (hostConfig.hardware.hasDualBoot or false) ''
-    if [ -f /boot/EFI/Microsoft/Boot/bootmgfw.efi.original ]; then
-      if ! ${pkgs.diffutils}/bin/diff -q /boot/EFI/systemd/systemd-bootx64.efi /boot/EFI/Microsoft/Boot/bootmgfw.efi > /dev/null 2>&1; then
-        echo "Ripristino workaround boot order..."
-        ${pkgs.coreutils}/bin/cp /boot/EFI/systemd/systemd-bootx64.efi /boot/EFI/Microsoft/Boot/bootmgfw.efi
-      fi
-    fi
-  '';
 
   # ============================================================================
   # LAPTOP-SPECIFIC PACKAGES

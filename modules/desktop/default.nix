@@ -5,12 +5,9 @@ let
 in
 {
   imports = [
-    ./kde.nix
-    ./fonts.nix
     ./applications.nix
-    ../hardware/audio.nix
-    ../hardware/bluetooth.nix
-    ../hardware/graphics.nix
+    ./fonts.nix
+    # KDE sarà importato dal profile se necessario
   ];
 
   # ============================================================================
@@ -55,9 +52,10 @@ in
   services.printing.enable = true;
 
   # ============================================================================
-  # SOUND SYSTEM
+  # AUDIO SYSTEM
   # ============================================================================
   services.pulseaudio.enable = false;
+  security.rtkit.enable = true;
   
   services.pipewire = {
     enable = true;
@@ -68,6 +66,30 @@ in
     pulse.enable = true;
     jack.enable = lib.mkDefault false;
   };
+
+  # ============================================================================
+  # HARDWARE ACCELERATION
+  # ============================================================================
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = lib.mkIf (hostConfig.features.gaming or false) true;
+  };
+
+  # ============================================================================
+  # BLUETOOTH (se presente)
+  # ============================================================================
+  hardware.bluetooth = lib.mkIf (hostConfig.hardware.hasBluetooth or false) {
+    enable = true;
+    powerOnBoot = true;
+    settings = {
+      General = {
+        Enable = "Source,Sink,Media,Socket";
+        Experimental = true;
+      };
+    };
+  };
+
+  services.blueman.enable = lib.mkIf (hostConfig.hardware.hasBluetooth or false) true;
 
   # ============================================================================
   # DESKTOP ENVIRONMENT VARIABLES

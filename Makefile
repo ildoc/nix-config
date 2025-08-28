@@ -1,7 +1,7 @@
 # NixOS Configuration Makefile
 
 HOSTNAME := $(shell hostname)
-FLAKE := /etc/nixos
+FLAKE := .
 
 .PHONY: help
 help:
@@ -14,14 +14,17 @@ help:
 	@echo "  make clean      - Garbage collection"
 	@echo "  make check      - Check configurazione"
 	@echo "  make diff       - Mostra differenze con sistema attuale"
+	@echo "  make format     - Format codice Nix"
+	@echo "  make show       - Mostra struttura flake"
+	@echo "  make develop    - Entra nella dev shell"
 
 .PHONY: rebuild
 rebuild:
-	sudo nixos-rebuild switch --flake .#$(HOSTNAME)
+	sudo nixos-rebuild switch --flake $(FLAKE)#$(HOSTNAME)
 
 .PHONY: test
 test:
-	sudo nixos-rebuild test --flake .#$(HOSTNAME)
+	sudo nixos-rebuild test --flake $(FLAKE)#$(HOSTNAME) --show-trace
 
 .PHONY: update
 update:
@@ -34,9 +37,21 @@ clean:
 
 .PHONY: check
 check:
-	nix flake check
+	nix flake check --show-trace
 
 .PHONY: diff
 diff:
-	nixos-rebuild build --flake .#$(HOSTNAME)
+	nixos-rebuild build --flake $(FLAKE)#$(HOSTNAME)
 	nix store diff-closures /run/current-system ./result
+
+.PHONY: format
+format:
+	nix fmt
+
+.PHONY: show
+show:
+	nix flake show
+
+.PHONY: develop
+develop:
+	nix develop
