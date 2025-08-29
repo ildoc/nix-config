@@ -1,16 +1,16 @@
-{ config, pkgs, lib, hostname ? "", ... }:
+{ config, pkgs, lib, globalConfig, hostname, hostConfig, ... }:
 
 let
   isDesktop = hostname == "slimbook" || hostname == "gaming";
   
   # Percorsi dei wallpaper
   wallpapers = {
-    slimbook = ../assets/wallpapers/slimbook.jpg;
-    gaming = ../assets/wallpapers/gaming.jpg;
+    slimbook = ../../assets/wallpapers/slimbook.jpg;
+    gaming = ../../assets/wallpapers/gaming.jpg;
   };
   
   # Wallpaper di default se non esiste quello specifico
-  currentWallpaper = wallpapers.${hostname} or ../assets/wallpapers/default.jpg;
+  currentWallpaper = wallpapers.${hostname} or ../../assets/wallpapers/default.jpg;
 in
 {
   # Solo per sistemi con desktop KDE
