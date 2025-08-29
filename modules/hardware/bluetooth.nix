@@ -1,4 +1,4 @@
-{ config, lib, inputs, hostConfig, ... }:
+{ config, lib, globalConfig, inputs, hostConfig, ... }:
 
 let
   hasBluetoothHW = hostConfig.hardware.hasBluetooth or false;

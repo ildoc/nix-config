@@ -1,4 +1,4 @@
-{ config, pkgs, lib, inputs, hostConfig, ... }:
+{ config, pkgs, lib, globalConfig, inputs, hostConfig, ... }:
 
 let
   isEnabled = hostConfig.features.vscodeServer or false;

@@ -1,4 +1,4 @@
-{ config, pkgs, lib, inputs, hostConfig, ... }:
+{ config, pkgs, lib, globalConfig, inputs, hostConfig, ... }:
 
 let
   gpuType = hostConfig.hardware.graphics or "intel";

@@ -95,7 +95,8 @@ rec {
     };
     
     kde = {
-      connect = lib.range 1714 1724;
+      # KDE Connect usa le porte 1714-1764 TCP e UDP
+      connect = [ 1714 1715 1716 1717 1718 1719 1720 1721 1722 1723 1724 ];
     };
   };
 
