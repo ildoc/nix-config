@@ -1,7 +1,7 @@
 { config, lib, inputs, hostConfig, ... }:
 
 let
-  cfg = inputs.config;
+  cfg = globalConfig;
   isGaming = hostConfig.features.gaming or false;
 in
 {

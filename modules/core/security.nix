@@ -1,7 +1,7 @@
-{ config, pkgs, lib, inputs, hostConfig, ... }:
+{ config, pkgs, lib, globalConfig, hostConfig, ... }:
 
 let
-  cfg = inputs.config;
+  cfg = globalConfig;
 in
 {
   # ============================================================================
@@ -74,6 +74,8 @@ in
     };
     
     script = ''
+      set -e
+      
       # Wait for secret file
       count=0
       while [ ! -f ${config.sops.secrets."git/email".path} ] && [ $count -lt 60 ]; do

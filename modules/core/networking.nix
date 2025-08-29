@@ -1,7 +1,7 @@
-{ config, lib, inputs, hostConfig, ... }:
+{ config, lib, globalConfig, hostConfig, ... }:
 
 let
-  cfg = inputs.config;
+  cfg = globalConfig;
 in
 {
   networking = {

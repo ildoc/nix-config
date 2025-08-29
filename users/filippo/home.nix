@@ -1,7 +1,7 @@
 { config, pkgs, lib, inputs, hostname, hostConfig, ... }:
 
 let
-  cfg = inputs.config;
+  cfg = globalConfig;
   userCfg = cfg.users.filippo;
   isDesktop = hostConfig.features.desktop or false;
 in

@@ -1,7 +1,7 @@
 { config, pkgs, lib, inputs, hostConfig, ... }:
 
 let
-  cfg = inputs.config;
+  cfg = globalConfig;
   userCfg = cfg.users.filippo;
 in
 {

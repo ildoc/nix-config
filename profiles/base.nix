@@ -1,7 +1,7 @@
-{ config, pkgs, lib, inputs, hostConfig, ... }:
+{ config, pkgs, lib, globalConfig, hostConfig, ... }:
 
 let
-  cfg = inputs.config;
+  cfg = globalConfig;
 in
 {
   imports = [
@@ -12,8 +12,6 @@ in
   # SYSTEM CONFIGURATION
   # ============================================================================
   system.stateVersion = cfg.system.stateVersion;
-  
-  networking.hostName = hostConfig.description or "nixos";
   
   # ============================================================================
   # NIX CONFIGURATION

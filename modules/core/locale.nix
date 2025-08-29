@@ -1,7 +1,7 @@
-{ config, lib, inputs, ... }:
+{ config, lib, globalConfig, ... }:
 
 let
-  cfg = inputs.config;
+  cfg = globalConfig;
 in
 {
   time.timeZone = cfg.system.timezone;
@@ -18,6 +18,4 @@ in
   console = {
     useXkbConfig = true;
   };
-  
-  # Numlock è gestito nel desktop module per sistemi con GUI
 }

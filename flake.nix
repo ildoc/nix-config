@@ -31,8 +31,8 @@
     let
       system = "x86_64-linux";
       
-      # Import delle configurazioni centralizzate
-      config = import ./config { inherit (nixpkgs) lib; };
+      # Import delle configurazioni centralizzate - RINOMINATO per evitare conflitti
+      globalConfig = import ./config/default.nix { inherit (nixpkgs) lib; };
       
       # Overlay per unstable packages
       overlay-unstable = final: prev: {
@@ -48,8 +48,10 @@
           inherit system;
           
           specialArgs = { 
-            inherit inputs config;
-            hostConfig = config.hosts.${hostname};
+            inherit inputs;
+            # Passiamo la configurazione globale con un nome diverso
+            globalConfig = globalConfig;
+            hostConfig = globalConfig.hosts.${hostname};
           };
           
           modules = [
@@ -81,8 +83,9 @@
                 users.filippo = import ./users/filippo/home.nix;
                 backupFileExtension = "backup";
                 extraSpecialArgs = { 
-                  inherit inputs config hostname;
-                  hostConfig = config.hosts.${hostname};
+                  inherit inputs hostname;
+                  globalConfig = globalConfig;
+                  hostConfig = globalConfig.hosts.${hostname};
                 };
                 sharedModules = [
                   plasma-manager.homeManagerModules.plasma-manager

@@ -1,7 +1,7 @@
 { config, lib, inputs, hostConfig, ... }:
 
 let
-  cfg = inputs.config;
+  cfg = globalConfig;
   isLaptop = hostConfig.type == "laptop";
   hasBattery = hostConfig.hardware.hasBattery or false;
 in
