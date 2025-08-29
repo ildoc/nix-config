@@ -1,4 +1,4 @@
-{ config, pkgs, lib, globalConfig, hostname, hostConfig, ... }:
+{ config, pkgs, lib, inputs, globalConfig, hostname, hostConfig, ... }:
 
 let
   isDesktop = hostname == "slimbook" || hostname == "gaming";

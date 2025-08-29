@@ -1,4 +1,4 @@
-{ config, pkgs, lib, globalConfig, inputs, hostname, hostConfig, ... }:
+{ config, pkgs, lib, inputs, globalConfig, hostname, hostConfig, ... }:
 
 let
   cfg = globalConfig;
