@@ -1,0 +1,29 @@
+image: nixos/nix:latest
+
+stages:
+  - check
+  - build
+
+variables:
+  NIX_CONFIG: "experimental-features = nix-command flakes"
+
+check:
+  stage: check
+  script:
+    - nix flake check
+
+.build_host:
+  stage: build
+  script:
+    - nix build .#nixosConfigurations.$HOST.config.system.build.toplevel
+  artifacts:
+    paths:
+      - result
+
+build_matrix:
+  extends: .build_host
+  parallel:
+    matrix:
+      - HOST: slimbook
+      # - HOST: gaming
+      # - HOST: dev-server
