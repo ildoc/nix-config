@@ -21,7 +21,7 @@ let
 in
 {
   # ============================================================================
-  # PROGRAMMING LANGUAGES
+  # PROGRAMMING LANGUAGES AND TOOLS
   # ============================================================================
   environment.systemPackages = with pkgs; [
     # Languages
@@ -33,21 +33,30 @@ in
     # .NET Development
     dotnetCombined
     
-    # Db Clients
+    # Databases
     postgresql
     sqlite
     dbeaver-bin
+    
+    # API tools
+    postman
+    curl
+    httpie
 
     # Build tools
     gnumake
     cmake
     gcc
     
+    # Container tools
+    docker
+    docker-compose
+    
     # Libraries
     icu
     openssl
     zlib
-  ] ++ cfg.packages.development.tools;
+  ];
 
   # ============================================================================
   # ENVIRONMENT VARIABLES

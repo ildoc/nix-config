@@ -14,29 +14,34 @@ in
   system.stateVersion = cfg.system.stateVersion;
   
   # ============================================================================
-  # BASE PACKAGES
+  # BASE PACKAGES - Definiti direttamente qui, non più in config/default.nix
   # ============================================================================
-  environment.systemPackages = with pkgs; 
-    cfg.packages.system ++
-    [
-      # Version control
-      git
-      
-      # Container tools
-      kubectl
-      
-      # Hardware info
-      pciutils
-      usbutils
-      
-      # Security
-      sops
-      age
-    ];
-
-  # ============================================================================
-  # USERS CONFIGURATION
-  # ============================================================================
-  # Root shell already configured in modules/core/shell.nix
-  # users.users.root.shell = pkgs.zsh; <- REMOVED (duplicate)
+  environment.systemPackages = with pkgs; [
+    # Base system tools
+    wget
+    curl
+    git
+    htop
+    tree
+    lsof
+    file
+    which
+    fastfetch
+    unzip
+    zip
+    
+    # Version control
+    git
+    
+    # Container tools
+    kubectl
+    
+    # Hardware info
+    pciutils
+    usbutils
+    
+    # Security
+    sops
+    age
+  ];
 }

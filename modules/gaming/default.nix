@@ -111,9 +111,26 @@ in
   };
 
   # ============================================================================
-  # GAMING PACKAGES
+  # GAMING PACKAGES - Definiti qui invece che in config/default.nix
   # ============================================================================
-  environment.systemPackages = with pkgs; cfg.packages.gaming;
+  environment.systemPackages = with pkgs; [
+    # Gaming platforms
+    steam
+    lutris
+    heroic
+    bottles
+    
+    # Gaming tools
+    gamemode
+    mangohud
+    goverlay
+    
+    # Communication
+    discord
+    
+    # Streaming/Recording
+    obs-studio
+  ];
   
   # ============================================================================
   # USER GROUPS
