@@ -206,7 +206,8 @@ rec {
         description = "Wireguard server di casa";
       };
       
-      applications = {
+      # Lista delle applicazioni pinnate nella taskbar (solo nomi per riferimento)
+      taskbar = {
         pinned = [
           "systemsettings"
           "org.kde.dolphin"
@@ -217,14 +218,8 @@ rec {
           "teams-for-linux"
           "spotify"
         ];
-        
-        # QUESTI DEVONO ESSERE I NOMI CORRETTI DEI PACCHETTI
-        additional = [
-          "insomnia"      # API testing
-          "obsidian"      # Note taking
-          "libreoffice"   # Office suite
-        ];
       };
+      # RIMOSSO: applications.additional - i pacchetti vanno nel file host
     };
     
     gaming = {
@@ -247,7 +242,7 @@ rec {
         vscodeServer = false;
       };
       
-      applications = {
+      taskbar = {
         pinned = [
           "org.kde.dolphin"
           "firefox"
@@ -258,11 +253,8 @@ rec {
           "heroic"
           "spotify"
         ];
-        
-        additional = [
-          "obs-studio"
-        ];
       };
+      # RIMOSSO: applications.additional
     };
     
     dev-server = {
@@ -285,64 +277,7 @@ rec {
         vscodeServer = true;
       };
       
-      applications = {
-        pinned = [];
-        additional = [];
-      };
+      # Server non ha taskbar o applicazioni desktop
     };
-  };
-
-  # ============================================================================
-  # PACKAGES CONFIGURATION - RIMOSSO: spostiamo in slimbook default.nix
-  # ============================================================================
-  # Questi restano solo come riferimento per i nomi dei pacchetti base
-  packages = {
-    # Base system packages (tutti gli host)
-    system = [
-      "wget" "curl" "git" "htop" "tree" "lsof"
-      "file" "which" "fastfetch" "unzip" "zip"
-      "pciutils" "usbutils" "sops" "age"
-    ];
-    
-    # Shell enhancements (tutti gli utenti)
-    shell = [
-      "fd" "ripgrep" "tldr" "jq" "yq-go" "httpie"
-      "lazygit" "btop" "duf" "dust" "procs"
-    ];
-    
-    # Desktop packages
-    desktop = {
-      core = [
-        "firefox" "telegram-desktop" "vlc" "vscode"
-      ];
-      kde = [
-        "kdePackages.dolphin"
-        "kdePackages.spectacle"
-        "kdePackages.okular"
-        "kdePackages.gwenview"
-        "kdePackages.konsole"
-        "kdePackages.kcalc"
-        "kdePackages.yakuake"
-        "kdePackages.ark"
-      ];
-    };
-    
-    # Development packages
-    development = {
-      languages = [
-        "nodejs" "python3" "go" "gcc" "gnumake" "cmake"
-      ];
-      tools = [
-        "docker" "docker-compose" "kubectl"
-        "postgresql" "sqlite" "postman"
-      ];
-    };
-    
-    # Gaming packages
-    gaming = [
-      "steam" "lutris" "heroic" "bottles"
-      "gamemode" "mangohud" "goverlay"
-      "discord" "obs-studio"
-    ];
   };
 }

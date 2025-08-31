@@ -4,31 +4,11 @@ let
   cfg = globalConfig;
   userCfg = cfg.users.filippo;
   isDesktop = hostConfig.features.desktop or false;
-  
-  # Mappa i nomi dei pacchetti ai pacchetti veri
-  mapPackageNames = names: map (name: 
-    let
-      # Gestisci i pacchetti con namespace speciali
-      pkg = if lib.hasPrefix "kdePackages." name then
-        pkgs.kdePackages.${lib.removePrefix "kdePackages." name}
-      else if lib.hasPrefix "unstable." name then
-        pkgs.unstable.${lib.removePrefix "unstable." name}
-      else
-        pkgs.${name}
-    ;
-    in pkg
-  ) names;
-  
-  # Ottieni i pacchetti aggiuntivi per questo host
-  additionalPackages = 
-    if hostConfig ? applications && hostConfig.applications ? additional then
-      mapPackageNames hostConfig.applications.additional
-    else [];
 in
 {
   # Import Plasma configuration if desktop
   imports = lib.optionals isDesktop [ 
-    ../modules/plasma.nix 
+    ./plasma.nix 
   ];
 
   home.username = userCfg.username;
@@ -231,10 +211,10 @@ in
   };
 
   # ============================================================================
-  # USER PACKAGES
+  # USER PACKAGES - Solo tools CLI/shell, no applicazioni desktop
   # ============================================================================
   home.packages = with pkgs; [
-    # Shell enhancements (tools già configurati sopra)
+    # Shell enhancements
     fd
     ripgrep
     tldr
@@ -254,9 +234,9 @@ in
     # Archives
     unrar
     p7zip
-  ] ++ lib.optionals isDesktop ([
-    firefox
-  ] ++ additionalPackages);
+  ];
+  # NOTA: Le applicazioni desktop sono gestite a livello di sistema
+  # in hosts/*/default.nix e modules/desktop/default.nix
 
   # ============================================================================
   # XDG DIRECTORIES

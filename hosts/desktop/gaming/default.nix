@@ -52,8 +52,9 @@
   # ============================================================================
   # GAMING-SPECIFIC PACKAGES
   # ============================================================================
-  environment.systemPackages = with pkgs; 
-    hostConfig.applications.additional ++ [
-      # Aggiungi qui eventuali pacchetti specifici solo per questo desktop gaming
-    ];
+  # Pacchetti aggiuntivi specifici per questo desktop gaming
+  environment.systemPackages = with pkgs; [
+    # Nessun pacchetto aggiuntivo per ora
+    # obs-studio è già incluso nel modulo gaming
+  ];
 }
