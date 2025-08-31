@@ -315,14 +315,14 @@ rec {
         "firefox" "telegram-desktop" "vlc" "vscode"
       ];
       kde = [
-        pkgs.kdePackages.dolphin
-        pkgs.kdePackages.spectacle
-        pkgs.kdePackages.okular
-        pkgs.kdePackages.gwenview
-        pkgs.kdePackages.konsole
-        pkgs.kdePackages.kcalc
-        pkgs.kdePackages.yakuake
-        pkgs.kdePackages.ark
+        "kdePackages.dolphin"
+        "kdePackages.spectacle"
+        "kdePackages.okular"
+        "kdePackages.gwenview"
+        "kdePackages.konsole"
+        "kdePackages.kcalc"
+        "kdePackages.yakuake"
+        "kdePackages.ark"
       ];
     };
     
