@@ -305,9 +305,8 @@ rec {
     
     # Shell enhancements (tutti gli utenti)
     shell = [
-      "bat" "eza" "fd" "ripgrep" "fzf" "zoxide"
-      "tldr" "jq" "yq-go" "httpie" "lazygit"
-      "btop" "duf" "dust" "procs"
+      "fd" "ripgrep" "tldr" "jq" "yq-go" "httpie"
+      "lazygit" "btop" "duf" "dust" "procs"
     ];
     
     # Desktop packages
@@ -316,10 +315,14 @@ rec {
         "firefox" "telegram-desktop" "vlc" "vscode"
       ];
       kde = [
-        "kdePackages.dolphin" "kdePackages.spectacle"
-        "kdePackages.okular" "kdePackages.gwenview"
-        "kdePackages.konsole" "kdePackages.kcalc"
-        "kdePackages.yakuake" "kdePackages.ark"
+        pkgs.kdePackages.dolphin
+        pkgs.kdePackages.spectacle
+        pkgs.kdePackages.okular
+        pkgs.kdePackages.gwenview
+        pkgs.kdePackages.konsole
+        pkgs.kdePackages.kcalc
+        pkgs.kdePackages.yakuake
+        pkgs.kdePackages.ark
       ];
     };
     

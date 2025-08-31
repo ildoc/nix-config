@@ -213,19 +213,33 @@ in
   # ============================================================================
   # USER PACKAGES
   # ============================================================================
-  home.packages = with pkgs; 
-    cfg.packages.shell ++ [
-      # Development tools
-      lazygit
-      
-      # System monitoring
-      btop
-      duf
-      dust
-      procs
-    ] ++ lib.optionals isDesktop (
-      hostConfig.applications.additional or []
-    );
+  home.packages = with pkgs; [
+    # Shell enhancements (tools già configurati sopra)
+    fd
+    ripgrep
+    tldr
+    jq
+    yq-go
+    httpie
+    
+    # Development tools
+    lazygit
+    
+    # System monitoring
+    btop
+    duf
+    dust
+    procs
+    
+    # Archives
+    unrar
+    p7zip
+  ] ++ lib.optionals isDesktop (
+    # Aggiungi pacchetti desktop se presente
+    (hostConfig.applications.additional or []) ++ [
+      firefox
+    ]
+  );
 
   # ============================================================================
   # XDG DIRECTORIES
