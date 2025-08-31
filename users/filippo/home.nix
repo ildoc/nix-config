@@ -4,6 +4,26 @@ let
   cfg = globalConfig;
   userCfg = cfg.users.filippo;
   isDesktop = hostConfig.features.desktop or false;
+  
+  # Mappa i nomi dei pacchetti ai pacchetti veri
+  mapPackageNames = names: map (name: 
+    let
+      # Gestisci i pacchetti con namespace speciali
+      pkg = if lib.hasPrefix "kdePackages." name then
+        pkgs.kdePackages.${lib.removePrefix "kdePackages." name}
+      else if lib.hasPrefix "unstable." name then
+        pkgs.unstable.${lib.removePrefix "unstable." name}
+      else
+        pkgs.${name}
+    ;
+    in pkg
+  ) names;
+  
+  # Ottieni i pacchetti aggiuntivi per questo host
+  additionalPackages = 
+    if hostConfig ? applications && hostConfig.applications ? additional then
+      mapPackageNames hostConfig.applications.additional
+    else [];
 in
 {
   # Import Plasma configuration if desktop
@@ -58,7 +78,7 @@ in
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
     
-    initContent = ''
+    initExtra = ''
       # Directory shortcuts
       alias nixconf="cd ${cfg.paths.nixosConfig}"
       alias projects="cd ~/Projects"
@@ -234,12 +254,9 @@ in
     # Archives
     unrar
     p7zip
-  ] ++ lib.optionals isDesktop (
-    # Aggiungi pacchetti desktop se presente
-    (hostConfig.applications.additional or []) ++ [
-      firefox
-    ]
-  );
+  ] ++ lib.optionals isDesktop ([
+    firefox
+  ] ++ additionalPackages);
 
   # ============================================================================
   # XDG DIRECTORIES

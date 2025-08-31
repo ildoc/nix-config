@@ -5,8 +5,7 @@ let
 in
 {
   imports = [
-    ./fonts.nix  # Fonts già ben separati
-    # KDE è in ./kde.nix ma viene importato solo se necessario
+    ./fonts.nix
   ];
 
   # ============================================================================
@@ -109,21 +108,36 @@ in
   };
 
   # ============================================================================
-  # DESKTOP PACKAGES
+  # DESKTOP PACKAGES - Centralizzati qui per tutti i desktop
   # ============================================================================
-  environment.systemPackages = with pkgs; 
-    cfg.packages.desktop.core ++
-    cfg.packages.desktop.kde ++ [
-      # Desktop utilities
-      dconf-editor
-      nixfmt-rfc-style
-      
-      # Multimedia
-      vlc
-      unstable.spotify
-    ] ++ lib.optionals (hostConfig.features.gaming or false) [
-      prismlauncher
-    ];
+  environment.systemPackages = with pkgs; [
+    # Core desktop applications
+    firefox
+    telegram-desktop
+    vlc
+    vscode
+    
+    # Multimedia
+    unstable.spotify
+    
+    # KDE applications
+    kdePackages.dolphin
+    kdePackages.spectacle
+    kdePackages.okular
+    kdePackages.gwenview
+    kdePackages.konsole
+    kdePackages.kcalc
+    kdePackages.yakuake
+    kdePackages.ark
+    
+    # Desktop utilities
+    dconf-editor
+    nixfmt-rfc-style
+    
+    # Gaming (se abilitato)
+  ] ++ lib.optionals (hostConfig.features.gaming or false) [
+    prismlauncher
+  ];
 
   # ============================================================================
   # EXCLUDE UNWANTED KDE PACKAGES

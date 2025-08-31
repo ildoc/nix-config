@@ -23,9 +23,15 @@
   hardware.enableRedistributableFirmware = true;
 
   # Pacchetti specifici per questo host
-  environment.systemPackages = with pkgs; let
-    hostPkgs = globalConfig.hostPackages.${config.networking.hostName} or { system = []; unstable = []; };
-    systemPkgs = map (name: pkgs.${name}) hostPkgs.system;
-    unstablePkgs = map (name: pkgs.unstable.${name}) hostPkgs.unstable;
-  in systemPkgs ++ unstablePkgs;
+  # Gestiti correttamente come pacchetti veri, non stringhe
+  environment.systemPackages = with pkgs; [
+    # Applicazioni desktop aggiuntive per slimbook
+    teams-for-linux
+    insomnia
+    obsidian
+    libreoffice
+    
+    # Unstable packages
+    unstable.jetbrains.rider
+  ];
 }

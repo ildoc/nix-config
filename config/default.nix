@@ -218,10 +218,11 @@ rec {
           "spotify"
         ];
         
+        # QUESTI DEVONO ESSERE I NOMI CORRETTI DEI PACCHETTI
         additional = [
-          "insomnia"
-          "obsidian"
-          "libreoffice"
+          "insomnia"      # API testing
+          "obsidian"      # Note taking
+          "libreoffice"   # Office suite
         ];
       };
     };
@@ -292,8 +293,9 @@ rec {
   };
 
   # ============================================================================
-  # PACKAGES CONFIGURATION
+  # PACKAGES CONFIGURATION - RIMOSSO: spostiamo in slimbook default.nix
   # ============================================================================
+  # Questi restano solo come riferimento per i nomi dei pacchetti base
   packages = {
     # Base system packages (tutti gli host)
     system = [
@@ -342,32 +344,5 @@ rec {
       "gamemode" "mangohud" "goverlay"
       "discord" "obs-studio"
     ];
-  };
-
-  hostPackages = {
-    slimbook = {
-      system = [
-        "teams-for-linux"
-        "insomnia"
-        "obsidian"
-        "libreoffice"
-      ];
-      # Pacchetti speciali che richiedono unstable
-      unstable = [
-        "jetbrains-rider"  # Nome del pacchetto senza pkgs
-      ];
-    };
-    
-    gaming = {
-      system = [
-        "obs-studio"
-      ];
-      unstable = [];
-    };
-    
-    dev-server = {
-      system = [];
-      unstable = [];
-    };
   };
 }
