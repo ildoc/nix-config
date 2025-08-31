@@ -74,7 +74,7 @@ in
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
 
-    initContent = ''
+    initExtra = ''
       # Theme sarà gestito da starship
 
       # Directory shortcuts

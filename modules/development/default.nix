@@ -36,7 +36,7 @@ in
     # Db Clients
     postgresql
     sqlite
-    dbeaver
+    dbeaver-bin
 
     # Build tools
     gnumake
