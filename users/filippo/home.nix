@@ -58,7 +58,7 @@ in
     autosuggestion.enable = true;
     syntaxHighlighting.enable = true;
     
-    initExtra = ''
+    initContent = ''
       # Directory shortcuts
       alias nixconf="cd ${cfg.paths.nixosConfig}"
       alias projects="cd ~/Projects"
