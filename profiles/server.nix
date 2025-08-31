@@ -42,7 +42,6 @@ in
   # SERVER NETWORK
   # ============================================================================
   networking = {
-    hostName = hostConfig.description or "server";
     useDHCP = lib.mkDefault true;
   };
 

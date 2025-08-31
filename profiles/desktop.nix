@@ -52,9 +52,6 @@
       enable = true;
       wifi.backend = lib.mkDefault "wpa_supplicant";
     };
-    
-    # Hostname from config
-    hostName = hostConfig.description or "desktop";
   };
 
   # ============================================================================

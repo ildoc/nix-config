@@ -137,9 +137,6 @@
         networkmanager-l2tp
       ];
     };
-    
-    # Hostname from config
-    hostName = hostConfig.description or "laptop";
   };
 
   # ============================================================================
