@@ -219,7 +219,6 @@ rec {
         ];
         
         additional = [
-          "jetbrains.rider"
           "insomnia"
           "obsidian"
           "libreoffice"
@@ -343,5 +342,32 @@ rec {
       "gamemode" "mangohud" "goverlay"
       "discord" "obs-studio"
     ];
+  };
+
+  hostPackages = {
+    slimbook = {
+      system = [
+        "teams-for-linux"
+        "insomnia"
+        "obsidian"
+        "libreoffice"
+      ];
+      # Pacchetti speciali che richiedono unstable
+      unstable = [
+        "jetbrains-rider"  # Nome del pacchetto senza pkgs
+      ];
+    };
+    
+    gaming = {
+      system = [
+        "obs-studio"
+      ];
+      unstable = [];
+    };
+    
+    dev-server = {
+      system = [];
+      unstable = [];
+    };
   };
 }

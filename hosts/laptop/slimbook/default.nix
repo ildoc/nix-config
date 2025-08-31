@@ -1,22 +1,15 @@
-{ config, pkgs, lib, inputs, hostConfig, ... }:
+{ config, pkgs, lib, inputs, hostConfig, globalConfig, ... }:
 
 {
   imports = [
     ./hardware-configuration.nix
   ];
 
-  # ============================================================================
-  # HOST-SPECIFIC SETTINGS
-  # ============================================================================
   networking.hostName = "slimbook";
 
-  # ============================================================================
-  # HARDWARE SPECIFICS
-  # ============================================================================
-  # CPU microcode updates
+  # Hardware specifics
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
   
-  # Graphics configuration
   hardware.graphics = {
     enable = true;
     extraPackages = with pkgs; [
@@ -29,36 +22,10 @@
   
   hardware.enableRedistributableFirmware = true;
 
-  # ============================================================================
-  # SLIMBOOK-SPECIFIC PACKAGES
-  # ============================================================================
-  environment.systemPackages = with pkgs; 
-    (hostConfig.applications.additional or []) ++ [
-      # Aggiungi qui eventuali pacchetti specifici solo per questo slimbook
-      unstable.jetbrains.rider
-      teams-for-linux
-    ];
-
-  # ============================================================================
-  # BOOT CONFIGURATION (se diverso dal default del profile)
-  # ============================================================================
-  # Solo se hai bisogno di override specifici per questo host
-  # boot.loader.timeout = 10;
-  
-  # ============================================================================
-  # CUSTOM SERVICES
-  # ============================================================================
-  # Eventuali servizi specifici per questo laptop
-  
-  # ============================================================================
-  # DUAL BOOT SUPPORT (se presente)
-  # ============================================================================
-  # Se hai Windows in dual boot, decommenta:
-  # boot.loader.systemd-boot.extraEntries = {
-  #   "windows.conf" = ''
-  #     title Windows 11
-  #     efi /EFI/Microsoft/Boot/bootmgfw.efi.original
-  #     sort-key z_windows
-  #   '';
-  # };
+  # Pacchetti specifici per questo host
+  environment.systemPackages = with pkgs; let
+    hostPkgs = globalConfig.hostPackages.${config.networking.hostName} or { system = []; unstable = []; };
+    systemPkgs = map (name: pkgs.${name}) hostPkgs.system;
+    unstablePkgs = map (name: pkgs.unstable.${name}) hostPkgs.unstable;
+  in systemPkgs ++ unstablePkgs;
 }
