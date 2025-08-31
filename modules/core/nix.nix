@@ -1,6 +1,12 @@
-{ config, lib, ... }:
+{ config, lib, globalConfig, ... }:
 
+let
+  cfg = globalConfig;
+in
 {
+  # ============================================================================
+  # NIX CONFIGURATION - CENTRALIZZATA
+  # ============================================================================
   nixpkgs.config.allowUnfree = true;
 
   nix = {
@@ -20,10 +26,12 @@
         "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
       ];
       
-      max-free = toString (5 * 1024 * 1024 * 1024);
-      min-free = toString (1 * 1024 * 1024 * 1024);
+      # Gestione spazio disco
+      max-free = toString (5 * 1024 * 1024 * 1024);  # 5GB
+      min-free = toString (1 * 1024 * 1024 * 1024);  # 1GB
     };
     
+    # Garbage collection automatica
     gc = {
       automatic = true;
       dates = "daily";
@@ -31,6 +39,7 @@
       persistent = true;
     };
     
+    # Ottimizzazione store
     optimise = {
       automatic = true;
       dates = [ "weekly" ];

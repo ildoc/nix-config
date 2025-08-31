@@ -5,9 +5,8 @@ let
 in
 {
   imports = [
-    ./applications.nix
-    ./fonts.nix
-    # KDE sarà importato dal profile se necessario
+    ./fonts.nix  # Fonts già ben separati
+    # KDE è in ./kde.nix ma viene importato solo se necessario
   ];
 
   # ============================================================================
@@ -39,6 +38,14 @@ in
         };
       };
     };
+  };
+
+  # ============================================================================
+  # DESKTOP ENVIRONMENT VARIABLES
+  # ============================================================================
+  environment.sessionVariables = {
+    QT_STYLE_OVERRIDE = "breeze";
+    BROWSER = "firefox";
   };
 
   # ============================================================================
@@ -92,14 +99,6 @@ in
   services.blueman.enable = lib.mkIf (hostConfig.hardware.hasBluetooth or false) true;
 
   # ============================================================================
-  # DESKTOP ENVIRONMENT VARIABLES
-  # ============================================================================
-  environment.sessionVariables = {
-    QT_STYLE_OVERRIDE = "breeze";
-    BROWSER = "firefox";
-  };
-
-  # ============================================================================
   # KDE CONNECT
   # ============================================================================
   programs.kdeconnect.enable = true;
@@ -122,10 +121,6 @@ in
       # Multimedia
       vlc
       unstable.spotify
-      
-      # Communication
-      firefox
-      telegram-desktop
     ] ++ lib.optionals (hostConfig.features.gaming or false) [
       prismlauncher
     ];
@@ -138,58 +133,6 @@ in
     khelpcenter
     kate
   ];
-
-  # ============================================================================
-  # FONTS CONFIGURATION
-  # ============================================================================
-  fonts = {
-    enableDefaultPackages = true;
-    
-    packages = with pkgs; [
-      # System fonts
-      noto-fonts
-      noto-fonts-cjk-sans
-      noto-fonts-emoji
-      liberation_ttf
-      
-      # Nerd Fonts
-      nerd-fonts.fira-code
-      nerd-fonts.jetbrains-mono
-      
-      # Additional fonts
-      fira
-      fira-code
-      source-code-pro
-      source-sans-pro
-      font-awesome
-      
-      # Microsoft compatible
-      corefonts
-      vistafonts
-    ];
-    
-    fontconfig = {
-      enable = true;
-      
-      defaultFonts = {
-        serif = [ "Noto Serif" "Liberation Serif" ];
-        sansSerif = [ "Noto Sans" "Liberation Sans" ];
-        monospace = [ "FiraCode Nerd Font" "JetBrainsMono Nerd Font" ];
-        emoji = [ "Noto Color Emoji" ];
-      };
-      
-      antialias = true;
-      hinting = {
-        enable = true;
-        style = "slight";
-      };
-      
-      subpixel = {
-        rgba = "rgb";
-        lcdfilter = "default";
-      };
-    };
-  };
 
   # ============================================================================
   # NUMLOCK ON STARTUP

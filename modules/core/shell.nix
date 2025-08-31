@@ -1,6 +1,9 @@
 { config, pkgs, ... }:
 
 {
+  # ============================================================================
+  # EDITOR CONFIGURATION
+  # ============================================================================
   programs.nano.enable = true;
   
   environment.variables = {
@@ -8,6 +11,9 @@
     VISUAL = "nano";
   };
 
+  # ============================================================================
+  # ZSH CONFIGURATION
+  # ============================================================================
   programs.zsh = {
     enable = true;
     autosuggestions.enable = true;
@@ -61,7 +67,25 @@
       # Kubernetes
       if command -v kubectl >/dev/null 2>&1; then
         alias k="kubectl"
+        alias kgp="kubectl get pods"
+        alias kgs="kubectl get services"
       fi
+      
+      # Git shortcuts
+      alias g="git"
+      alias gs="git status"
+      alias ga="git add"
+      alias gc="git commit"
+      alias gp="git push"
+      alias gl="git log --oneline --graph --decorate"
+      
+      # Docker shortcuts
+      alias d="docker"
+      alias dc="docker-compose"
+      alias dps="docker ps"
+      
+      # System info
+      alias sysinfo="fastfetch"
       
       # Utility functions
       mkcd() { mkdir -p "$1" && cd "$1"; }
@@ -96,5 +120,6 @@
     '';
   };
   
+  # Set ZSH as default shell for root
   users.users.root.shell = pkgs.zsh;
 }
