@@ -25,7 +25,7 @@ in
     services.resolved.enable = true;
     
     # ============================================================================
-    # IMPORT SERVICE
+    # IMPORT SERVICE - FIXED TO NOT AUTO-CONNECT
     # ============================================================================
     systemd.services.import-wireguard-to-nm = {
       description = "Import WireGuard configuration to NetworkManager";
@@ -88,10 +88,19 @@ in
           ${pkgs.networkmanager}/bin/nmcli connection modify "$imported_name" connection.id "${vpnName}"
         fi
         
-        # Configure for manual activation
-        ${pkgs.networkmanager}/bin/nmcli connection modify "${vpnName}" connection.autoconnect no
+        # CRITICAL FIX: Ensure VPN is NOT auto-connected
+        echo "Configuring VPN for manual activation only..."
+        ${pkgs.networkmanager}/bin/nmcli connection modify "${vpnName}" \
+          connection.autoconnect no \
+          connection.autoconnect-priority -999 \
+          ipv4.never-default yes \
+          ipv6.never-default yes
         
-        echo "✓ WireGuard successfully imported into NetworkManager!"
+        # Additional safety: ensure it's down after import
+        ${pkgs.networkmanager}/bin/nmcli connection down "${vpnName}" 2>/dev/null || true
+        
+        echo "✓ WireGuard imported and configured for manual activation only!"
+        echo "Use 'vpn-connect' to manually connect when needed."
       '';
     };
     
