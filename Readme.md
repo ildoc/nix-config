@@ -31,20 +31,6 @@ Configurazione modulare e DRY (Don't Repeat Yourself) per gestire multiple macch
 - **🏗️ DRY Principles**: Configurazioni centralizzate, pacchetti non duplicati, settings condivisi
 - **🔧 Power Management**: Configurazioni TLP e KDE coordinate per evitare conflitti audio/schermo
 
-## 🚨 Problemi Risolti
-
-### Power Management & Audio
-- **✅ Risolto**: Conflitti tra TLP e KDE PowerDevil che causavano disconnessioni audio cicliche
-- **✅ Risolto**: Schermo che rimaneva acceso dopo logout per inattività
-- **✅ Configurato**: Timeout coordinati tra logind, TLP e KDE per evitare interferenze
-- **✅ Disabilitato**: USB autosuspend e Runtime PM per dispositivi audio
-
-### Centralizzazione
-- **✅ Rimosso**: Pacchetti duplicati tra moduli e profili
-- **✅ Centralizzato**: Configurazioni power management nel modulo `hardware/power.nix`
-- **✅ Organizzato**: Pacchetti base in `core/packages.nix`, desktop in `desktop/packages.nix`
-- **✅ Unificato**: Alias e shortcuts in un unico punto per manutenibilità
-
 ## 📦 Requisiti
 
 - **NixOS 25.05** o superiore
