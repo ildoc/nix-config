@@ -75,26 +75,27 @@ in
     programs.light.enable = true;
     services.thermald.enable = true;
     
-    # Configurazioni Logind - CRITICHE per evitare conflitti
+    # Configurazioni Logind - CORRETTE per NixOS
     services.logind = {
       lidSwitch = "suspend";
       lidSwitchExternalPower = "lock";
       lidSwitchDocked = "ignore";
       
-      # IMPORTANTE: Timeout più lunghi per evitare conflitti con KDE
-      idleAction = "lock";  # Solo lock, non suspend
-      idleActionSec = "30min";  # Timeout molto lungo
-      
-      # Disabilita la gestione dello schermo da parte di logind
-      powerKey = "poweroff";
-      powerKeyLongPress = "reboot";
-      
-      # Gestione hybrid sleep
-      hibernateKey = "hibernate";
-      suspendKey = "suspend";
-      
-      # Timeout HandleLidSwitch più preciso
-      lidSwitchIgnoreInhibited = false;
+      # Opzioni extraConfig per configurazioni aggiuntive
+      extraConfig = ''
+        # Timeout per idle (in secondi)
+        IdleAction=lock
+        IdleActionSec=1800
+        
+        # Gestione tasti power
+        HandlePowerKey=poweroff
+        HandlePowerKeyLongPress=reboot
+        HandleSuspendKey=suspend
+        HandleHibernateKey=hibernate
+        
+        # Non ignorare gli inibitori del lid switch
+        LidSwitchIgnoreInhibited=no
+      '';
     };
     
     # ============================================================================
