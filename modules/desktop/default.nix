@@ -7,6 +7,7 @@ in
   imports = [
     ./fonts.nix
     ./packages.nix  # Pacchetti centralizzati
+    ../hardware/bluetooth.nix
   ];
 
   # ============================================================================
@@ -81,22 +82,6 @@ in
     enable = true;
     enable32Bit = lib.mkIf (hostConfig.features.gaming or false) true;
   };
-
-  # ============================================================================
-  # BLUETOOTH (se presente)
-  # ============================================================================
-  hardware.bluetooth = lib.mkIf (hostConfig.hardware.hasBluetooth or false) {
-    enable = true;
-    powerOnBoot = true;
-    settings = {
-      General = {
-        Enable = "Source,Sink,Media,Socket";
-        Experimental = true;
-      };
-    };
-  };
-
-  services.blueman.enable = lib.mkIf (hostConfig.hardware.hasBluetooth or false) true;
 
   # ============================================================================
   # KDE CONNECT

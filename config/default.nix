@@ -185,7 +185,7 @@ rec {
       
       hardware = {
         cpu = "amd";
-        graphics = "intel";
+        graphics = "amd";
         hasBattery = true;
         hasBluetooth = true;
         hasWifi = true;
@@ -215,7 +215,7 @@ rec {
           "firefox"
           "org.telegram.desktop"
           "code"
-          "teams-for-linux"
+          # "teams-for-linux"
           "spotify"
         ];
       };
