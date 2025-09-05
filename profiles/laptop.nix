@@ -45,16 +45,12 @@
   };
 
   # ============================================================================
-  # POWER MANAGEMENT - Importato dal modulo hardware
+  # POWER MANAGEMENT - Già importato dal modulo hardware/power.nix sopra
   # ============================================================================
-  imports = [
-    ./base.nix
-    ../modules/desktop
-    ../modules/hardware/power.nix
-  ];
-
+  # Il modulo hardware/power.nix gestisce tutta la configurazione power management
+  
   # ============================================================================
-  # HARDWARE FEATURES - Spostato al modulo hardware/power.nix
+  # HARDWARE FEATURES - Gestito dal modulo hardware/power.nix
   # ============================================================================
   
   # ============================================================================
@@ -91,5 +87,4 @@
   # LAPTOP ALIASES - Ora gestiti da core/packages.nix
   # ============================================================================
   # Gli alias sono centralizzati in modules/core/packages.nix
-}
 }
