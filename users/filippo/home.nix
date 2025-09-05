@@ -59,6 +59,10 @@ in
     syntaxHighlighting.enable = true;
     
     initContent = ''
+      # Configurazione prompt per comportamento simile a oh-my-zsh
+      setopt PROMPT_SP
+      setopt PROMPT_CR
+      
       # Directory shortcuts
       alias nixconf="cd ${cfg.paths.nixosConfig}"
       alias projects="cd ~/Projects"
@@ -125,8 +129,12 @@ in
     enableZshIntegration = true;
     
     settings = {
-      format = "$directory$git_branch$git_status $character";
+      # Formato compatto senza righe extra
+      format = "$directory$git_branch$git_status$character";
       right_format = "$time";
+      
+      # Disabilita la riga vuota prima del prompt
+      add_newline = false;
       
       directory = {
         style = "cyan";
@@ -148,6 +156,8 @@ in
       character = {
         success_symbol = "[➜](bold green) ";
         error_symbol = "[➜](bold red) ";
+        # Rimuove spazi extra che potrebbero causare righe vuote
+        format = "$symbol";
       };
       
       time = {
