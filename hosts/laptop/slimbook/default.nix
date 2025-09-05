@@ -26,7 +26,7 @@
   # I pacchetti base sono gestiti dai moduli core e desktop
   environment.systemPackages = with pkgs; [
     # Applicazioni specifiche per slimbook non coperte dai moduli base
-    teams-for-linux      # Comunicazione aziendale
+    # teams-for-linux      # Comunicazione aziendale
     
     # Unstable packages specifici per development
     unstable.jetbrains.rider  # IDE per .NET
