@@ -88,7 +88,7 @@
                   hostConfig = globalConfig.hosts.${hostname};
                 };
                 sharedModules = [
-                  plasma-manager.homeManagerModules.plasma-manager
+                  plasma-manager.homeModules.plasma-manager
                 ];
               };
             }

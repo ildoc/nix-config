@@ -65,7 +65,7 @@ in
     elisa          # Music player (usiamo Spotify)
     khelpcenter    # Help center
     kate           # Text editor (usiamo VS Code)
-    kwrite         # Simple text editor
+    kwrited        # KWrite daemon (kwrite non esiste più in Plasma 6)
     plasma-browser-integration  # Non necessario se non usi Chrome/Firefox con integrazione
   ];
 }
