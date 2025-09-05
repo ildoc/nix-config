@@ -191,39 +191,43 @@ in
     # CONFIGURAZIONI FILE CONFIG
     # ============================================================================
     configFile = {
-      # Power Devil - Gestione energetica
+      # Power Devil - Gestione energetica coordinata con TLP
       "powermanagementprofilesrc" = {
-        # Profilo AC (corrente)
+        # Profilo AC (corrente) - Timeout più lunghi per evitare conflitti
         "AC/DPMSControl" = {
-          "idleTime" = cfg.desktop.powerManagement.ac.screenOffAfter;
+          "idleTime" = lib.mkIf (hostConfig.type == "laptop") (cfg.desktop.powerManagement.ac.screenOffAfter + 300);  # +5 min rispetto a TLP
         };
         
         "AC/DimDisplay" = {
-          "idleTime" = cfg.desktop.powerManagement.ac.dimAfter;
+          "idleTime" = lib.mkIf (hostConfig.type == "laptop") (cfg.desktop.powerManagement.ac.dimAfter + 120);  # +2 min rispetto a TLP
         };
         
-        "AC/SuspendSession" = {
-          "idleTime" = cfg.desktop.powerManagement.ac.screenOffAfter;
-          "suspendType" = 8;  # 8=turn off screen
-        };
+        # IMPORTANTE: Non impostare SuspendSession per AC per evitare conflitti
+        # La gestione del suspend è delegata a logind/TLP
         
-        # Profilo batteria (solo laptop)
+        # Profilo batteria (solo laptop) - Coordinato con TLP
         "Battery/DimDisplay" = lib.mkIf (hostConfig.hardware.hasBattery or false) {
-          "idleTime" = cfg.desktop.powerManagement.battery.dimAfter;
+          "idleTime" = cfg.desktop.powerManagement.battery.dimAfter + 60;  # +1 min rispetto a TLP
         };
         
-        "Battery/SuspendSession" = lib.mkIf (hostConfig.hardware.hasBattery or false) {
-          "idleTime" = cfg.desktop.powerManagement.battery.suspendAfter;
-          "suspendType" = 1;  # 1=sleep
+        # Per batteria, manteniamo solo il lock, il suspend è gestito da logind
+        "Battery/HandleButtonEvents" = lib.mkIf (hostConfig.hardware.hasBattery or false) {
+          "lidAction" = 0;  # 0=nessuna azione, lascia gestire a logind
+        };
+        
+        # Disabilita completamente la gestione automatica dello schermo su desktop
+        "AC/HandleButtonEvents" = lib.mkIf (hostConfig.type == "desktop") {
+          "lidAction" = 0;
+          "powerButtonAction" = 0;
         };
       };
       
-      # Screen lock settings
+      # Screen lock settings - Coordinato con logind
       "kscreenlockerrc" = {
         "Daemon" = {
           "Autolock" = true;
           "LockOnResume" = true;
-          "Timeout" = 10;  # Minuti prima del lock automatico
+          "Timeout" = lib.mkIf (hostConfig.type == "laptop") 15;  # Più aggressivo su laptop
         };
         
         "Greeter" = {

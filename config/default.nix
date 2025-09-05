@@ -126,12 +126,12 @@ rec {
     
     powerManagement = {
       ac = {
-        dimAfter = 600;      # 10 minuti
+        dimAfter = 900;      # 15 minuti - aumentato per evitare conflitti
         screenOffAfter = 1800; # 30 minuti
       };
       battery = {
         dimAfter = 300;      # 5 minuti
-        suspendAfter = 600;  # 10 minuti
+        suspendAfter = 900;  # 15 minuti - aumentato per coordinamento con logind
       };
     };
   };

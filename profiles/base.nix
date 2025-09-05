@@ -14,34 +14,7 @@ in
   system.stateVersion = cfg.system.stateVersion;
   
   # ============================================================================
-  # BASE PACKAGES - Definiti direttamente qui, non più in config/default.nix
+  # BASE PACKAGES - Ora gestiti dal modulo core/packages.nix
   # ============================================================================
-  environment.systemPackages = with pkgs; [
-    # Base system tools
-    wget
-    curl
-    git
-    htop
-    tree
-    lsof
-    file
-    which
-    fastfetch
-    unzip
-    zip
-    
-    # Version control
-    git
-    
-    # Container tools
-    kubectl
-    
-    # Hardware info
-    pciutils
-    usbutils
-    
-    # Security
-    sops
-    age
-  ];
+  # I pacchetti base sono definiti in modules/core/packages.nix
 }

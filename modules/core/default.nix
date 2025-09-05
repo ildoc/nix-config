@@ -8,5 +8,6 @@
     ./nix.nix
     ./security.nix
     ./shell.nix
+    ./packages.nix
   ];
 }

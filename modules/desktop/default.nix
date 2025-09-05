@@ -6,6 +6,7 @@ in
 {
   imports = [
     ./fonts.nix
+    ./packages.nix  # Pacchetti centralizzati
   ];
 
   # ============================================================================
@@ -48,9 +49,9 @@ in
   };
 
   # ============================================================================
-  # NETWORKING FOR DESKTOP
+  # NETWORKING FOR DESKTOP - NetworkManager è configurato nei profili specifici
   # ============================================================================
-  networking.networkmanager.enable = true;
+  # networking.networkmanager.enable = true;  # Spostato nei profili
 
   # ============================================================================
   # PRINTING
@@ -108,45 +109,9 @@ in
   };
 
   # ============================================================================
-  # DESKTOP PACKAGES - Centralizzati qui per tutti i desktop
+  # DESKTOP PACKAGES - Ora gestiti in ./packages.nix
   # ============================================================================
-  environment.systemPackages = with pkgs; [
-    # Core desktop applications
-    firefox
-    telegram-desktop
-    vlc
-    vscode
-    
-    # Multimedia
-    unstable.spotify
-    
-    # KDE applications
-    kdePackages.dolphin
-    kdePackages.spectacle
-    kdePackages.okular
-    kdePackages.gwenview
-    kdePackages.konsole
-    kdePackages.kcalc
-    kdePackages.yakuake
-    kdePackages.ark
-    
-    # Desktop utilities
-    dconf-editor
-    nixfmt-rfc-style
-    
-    # Gaming (se abilitato)
-  ] ++ lib.optionals (hostConfig.features.gaming or false) [
-    prismlauncher
-  ];
-
-  # ============================================================================
-  # EXCLUDE UNWANTED KDE PACKAGES
-  # ============================================================================
-  environment.plasma6.excludePackages = with pkgs.kdePackages; [
-    elisa
-    khelpcenter
-    kate
-  ];
+  # I pacchetti desktop sono centralizzati nel modulo packages.nix
 
   # ============================================================================
   # NUMLOCK ON STARTUP

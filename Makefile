@@ -55,3 +55,27 @@ show:
 .PHONY: develop
 develop:
 	nix develop
+
+.PHONY: power-status
+power-status:
+	@echo "=== Power Management Status ==="
+	@systemctl status tlp 2>/dev/null || echo "TLP not running"
+	@systemctl status power-profiles-daemon 2>/dev/null || echo "power-profiles-daemon not running"
+	@echo ""
+	@echo "=== Battery Status ==="
+	@upower -i /org/freedesktop/UPower/devices/battery_BAT0 2>/dev/null || echo "No battery found"
+
+.PHONY: audio-status
+audio-status:
+	@echo "=== Audio System Status ==="
+	@systemctl --user status pipewire 2>/dev/null || echo "Pipewire not running"
+	@pactl info 2>/dev/null || echo "PulseAudio not available"
+
+.PHONY: quick-check
+quick-check:
+	@echo "=== Quick System Check ==="
+	@echo "Hostname: $(HOSTNAME)"
+	@echo "Power management conflicts:"
+	@systemctl is-active tlp power-profiles-daemon 2>/dev/null || true
+	@echo "Audio system:"
+	@systemctl --user is-active pipewire 2>/dev/null || true
