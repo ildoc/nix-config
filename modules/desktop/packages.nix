@@ -44,7 +44,6 @@ in
     # ============================================================================
   ] ++ lib.optionals (hostConfig.features.gaming or false) [
     # Gaming applications
-    prismlauncher
     steam
     lutris
     heroic

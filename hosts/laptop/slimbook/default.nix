@@ -30,5 +30,6 @@
     
     # Unstable packages specifici per development
     unstable.jetbrains.rider  # IDE per .NET
+    prismlauncher
   ];
 }
