@@ -487,7 +487,8 @@ case "${1:-help}" in
         echo -e "${CYAN}Gestione semplificata del sistema NixOS${NC}\n"
         
         echo -e "${BOLD}COMANDI PRINCIPALI:${NC}"
-        echo -e "  ${GREEN}update${NC}        Aggiorna flake inputs e ricostruisci il sistema"
+        echo -e "  ${GREEN}update${NC}        Aggiorna flake inputs e ricostruisci il sistema (con test)"
+        echo -e "  ${GREEN}update-quick${NC}  Aggiornamento rapido senza test preliminari"
         echo -e "  ${GREEN}check${NC}         Mostra stato e informazioni del sistema"
         echo -e "  ${GREEN}clean${NC}         Pulisci generazioni vecchie e ottimizza store"
         echo ""
