@@ -12,7 +12,7 @@ in
   # SYSTEM CONFIGURATION
   # ============================================================================
   system.stateVersion = cfg.system.stateVersion;
-  services.accounts-daemon.enable = lib.mkForce false;
+  systemd.services.accounts-daemon.restartIfChanged = false;
   
   # ============================================================================
   # BASE PACKAGES - Ora gestiti dal modulo core/packages.nix

@@ -15,8 +15,8 @@
     extraPackages = with pkgs; [
       mesa
       amdvlk
-      rocm-opencl-icd
-      rocm-opencl-runtime
+      # rocm-opencl-icd
+      # rocm-opencl-runtime
     ];
   };
   
