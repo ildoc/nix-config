@@ -29,14 +29,22 @@ in
       # Gestione spazio disco
       max-free = toString (5 * 1024 * 1024 * 1024);  # 5GB
       min-free = toString (1 * 1024 * 1024 * 1024);  # 1GB
+
+      keep-outputs = true;
+      keep-derivations = true;
+      
+      # Parallel downloads
+      http-connections = 50;
+      max-substitution-jobs = 16;
     };
     
     # Garbage collection automatica
     gc = {
       automatic = true;
-      dates = "daily";
+      dates = "weekly";
       options = "--delete-older-than 7d";
       persistent = true;
+      randomizedDelaySec = "45min";
     };
     
     # Ottimizzazione store
