@@ -14,164 +14,113 @@ in
   system.stateVersion = cfg.system.stateVersion;
   
   # ============================================================================
-  # FIX CRITICI PER REBUILD
+  # FIX CRITICI - PREVIENI RESTART DI SERVIZI DURANTE SWITCH
   # ============================================================================
   
-  # Previeni restart di servizi critici durante switch
   systemd.services = {
-    # Servizi di sistema che non devono essere riavviati
+    # Servizi core che non devono MAI essere riavviati durante switch
     accounts-daemon.restartIfChanged = false;
     nix-daemon.restartIfChanged = false;
     systemd-logind.restartIfChanged = false;
     NetworkManager.restartIfChanged = false;
     
-    # TLP - reload invece di restart
+    # CRITICAL FIX: Previeni restart di journald e polkit
+    systemd-journald.restartIfChanged = false;
+    systemd-journald.stopIfChanged = false;
+    polkit.restartIfChanged = false;
+    polkit.stopIfChanged = false;
+    
+    # Dbus non deve essere riavviato
+    dbus.restartIfChanged = false;
+    dbus.reloadIfChanged = true;
+    
+    # Timer che non devono essere riavviati
+    nix-gc.restartIfChanged = false;
+    nix-optimise.restartIfChanged = false;
+    
+    # TLP - solo reload
     tlp = lib.mkIf (hostConfig.type == "laptop") {
       restartIfChanged = false;
       reloadIfChanged = true;
+      stopIfChanged = false;
     };
     
-    # Bluetooth - non riavviare se attivo
+    # Bluetooth
     bluetooth.restartIfChanged = false;
+    
+    # SOPS services
+    sops-nix.restartIfChanged = false;
+    setup-git-config.restartIfChanged = false;
+    setup-ssh-keys.restartIfChanged = false;
   };
+  
+  # ============================================================================
+  # SYSTEMD SWITCH CONFIGURATION
+  # ============================================================================
+  system.activationScripts.diff = {
+    supportsDryActivation = true;
+    text = ''
+      if [[ -e /run/current-system ]]; then
+        echo "=== Skipping service restarts for critical services ==="
+        ${pkgs.nix}/bin/nix store diff-closures /run/current-system "$systemConfig" || true
+      fi
+    '';
+  };
+  
+  # ============================================================================
+  # SWITCH CONFIGURATION - Usa switch-to-configuration più sicuro
+  # ============================================================================
+  system.switch = {
+    enable = true;
+    enableNg = false; # Disabilita il nuovo switch che può causare problemi
+  };
+  
+  # ============================================================================
+  # JOURNALD - Configurazione che non richiede restart
+  # ============================================================================
+  services.journald = {
+    # Usa configurazione di default per evitare restart
+    extraConfig = lib.mkForce "";
+  };
+  
+  # ============================================================================
+  # POLKIT - Configurazione stabile
+  # ============================================================================
+  security.polkit = {
+    enable = true;
+    # Non aggiungere regole extra che richiederebbero restart
+    extraConfig = lib.mkForce "";
+  };
+  
+  # ============================================================================
+  # NIX DAEMON - Configurazione stabile
+  # ============================================================================
+  nix.daemonCPUSchedPolicy = lib.mkForce "batch";
+  nix.daemonIOSchedClass = lib.mkForce "idle";
+  
+  # ============================================================================
+  # ALTRI FIX
+  # ============================================================================
   
   # Disabilita accounts-daemon per KDE (non necessario)
   services.accounts-daemon.enable = lib.mkForce false;
   
-  # ============================================================================
-  # BOOT OPTIMIZATIONS
-  # ============================================================================
-  boot = {
-    # Kernel più recente per migliori performance
-    kernelPackages = lib.mkDefault pkgs.linuxPackages_latest;
-    
-    # Blacklist moduli non necessari
-    blacklistedKernelModules = [ 
-      "pcspkr"  # Beep fastidioso
-    ] ++ lib.optionals (hostConfig.type != "server") [
-      "iTCO_wdt"  # Watchdog non necessario su desktop/laptop
-    ];
-    
-    # Supporto per filesystem
-    supportedFilesystems = [ "ntfs" "exfat" ];
-    
-    # Cleanup /tmp all'avvio
-    tmp.cleanOnBoot = true;
-    
-    # Loader timeout ridotto
-    loader.timeout = lib.mkDefault 3;
-  };
-  
-  # ============================================================================
-  # SYSTEMD OPTIMIZATIONS
-  # ============================================================================
-  systemd = {
-    # Servizi da mascherare (disabilitare completamente)
-    services = {
-      # Disabilita servizi non necessari
-      systemd-networkd.enable = lib.mkDefault false; # Usiamo NetworkManager
-    };
-    
-    # Timeout più aggressivi per boot più veloce
-    extraConfig = ''
-      DefaultTimeoutStartSec=30s
-      DefaultTimeoutStopSec=10s
-      DefaultRestartSec=1s
-    '';
-    
-    # Watchdog disabilitato su laptop/desktop
-    watchdog = lib.mkIf (hostConfig.type != "server") {
-      device = null;
-    };
-  };
-  
-  # ============================================================================
-  # PERFORMANCE TUNING
-  # ============================================================================
-  # Zram swap per migliori performance
-  zramSwap = lib.mkIf (hostConfig.type != "server") {
+  # Assicura che dbus sia configurato correttamente
+  services.dbus = {
     enable = true;
-    algorithm = "zstd";
-    memoryPercent = 50; # Usa fino al 50% della RAM per zram
-  };
-  
-  # ============================================================================
-  # SICUREZZA OTTIMIZZATA
-  # ============================================================================
-  security = {
-    # Abilita polkit
-    polkit.enable = true;
-    
-    # AppArmor per sicurezza aggiuntiva (opzionale)
-    apparmor = {
-      enable = lib.mkDefault false; # Abilita se vuoi più sicurezza
-    };
-    
-    # Limiti risorse più generosi per utenti wheel
-    pam.loginLimits = [
-      {
-        domain = "@wheel";
-        type = "soft";
-        item = "nofile";
-        value = "524288";
-      }
-      {
-        domain = "@wheel";
-        type = "hard";
-        item = "nofile";
-        value = "1048576";
-      }
-    ];
-  };
-  
-  # ============================================================================
-  # SERVIZI BASE OTTIMIZZATI
-  # ============================================================================
-  services = {
-    # Abilita dbus
-    dbus = {
-      enable = true;
-      packages = [ pkgs.dconf ];
-    };
-    
-    # Abilita fstrim per SSD
-    fstrim = {
-      enable = true;
-      interval = "weekly";
-    };
-    
-    # Abilita earlyoom per prevenire freeze da OOM
-    earlyoom = {
-      enable = true;
-      freeMemThreshold = 5; # Inizia a killare processi al 5% di RAM libera
-      freeSwapThreshold = 10;
-      enableNotifications = true;
-    };
-    
-    # Journald ottimizzato
-    journald = {
-      extraConfig = ''
-        SystemMaxUse=1G
-        SystemMaxFileSize=100M
-        MaxRetentionSec=1month
-        ForwardToSyslog=no
-      '';
-    };
-  };
-  
-  # ============================================================================
-  # ENVIRONMENT
-  # ============================================================================
-  environment = {
-    # Variabili d'ambiente globali
-    variables = {
-      NIXPKGS_ALLOW_UNFREE = "1";
-      MOZ_USE_XINPUT2 = "1"; # Migliore supporto touchpad in Firefox
-    };
-    
-    # Path di sistema
-    systemPackages = [ pkgs.coreutils ];
+    packages = [ pkgs.dconf ];
   };
   
   programs.dconf.enable = true;
+  
+  # ============================================================================
+  # BOOT CONFIGURATION
+  # ============================================================================
+  boot = {
+    # Kernel più stabile
+    kernelPackages = lib.mkDefault pkgs.linuxPackages;
+    
+    # Cleanup /tmp all'avvio
+    tmp.cleanOnBoot = true;
+  };
 }
