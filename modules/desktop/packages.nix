@@ -22,21 +22,18 @@ in
     unstable.spotify
     
     # ============================================================================
-    # KDE APPLICATIONS SUITE
+    # KDE APPLICATIONS SUITE (Solo essenziali)
     # ============================================================================
     kdePackages.dolphin
     kdePackages.spectacle
     kdePackages.okular
     kdePackages.gwenview
     kdePackages.konsole
-    kdePackages.kcalc
-    kdePackages.yakuake
     kdePackages.ark
     
     # ============================================================================
     # DESKTOP UTILITIES
     # ============================================================================
-    dconf-editor
     nixfmt-rfc-style
     
     # ============================================================================
@@ -48,13 +45,12 @@ in
     lutris
     heroic
     gamemode
+    discord
+    obs-studio
   ] ++ lib.optionals (hostConfig.features.development or false) [
     # Development GUI tools
-    unstable.jetbrains.rider
-    unstable.jetbrains.datagrip
-  ] ++ lib.optionals (hostConfig.features.wireguard or false) [
-    # VPN GUI clients
-    kdePackages.kdeconnect-kde
+    dbeaver-bin
+    postman
   ];
 
   # ============================================================================
@@ -64,7 +60,6 @@ in
     elisa          # Music player (usiamo Spotify)
     khelpcenter    # Help center
     kate           # Text editor (usiamo VS Code)
-    kwrited        # KWrite daemon (kwrite non esiste più in Plasma 6)
-    plasma-browser-integration  # Non necessario se non usi Chrome/Firefox con integrazione
+    plasma-browser-integration  # Non necessario se non usi integrazione browser
   ];
 }

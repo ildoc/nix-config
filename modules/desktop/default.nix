@@ -18,7 +18,6 @@ in
     xkb = {
       layout = "it";
       variant = "";
-      options = "numlock:on";
     };
   };
 
@@ -48,11 +47,6 @@ in
     QT_STYLE_OVERRIDE = "breeze";
     BROWSER = "firefox";
   };
-
-  # ============================================================================
-  # NETWORKING FOR DESKTOP - NetworkManager è configurato nei profili specifici
-  # ============================================================================
-  # networking.networkmanager.enable = true;  # Spostato nei profili
 
   # ============================================================================
   # PRINTING
@@ -93,23 +87,4 @@ in
     allowedUDPPorts = cfg.ports.kde.connect;
   };
 
-  # ============================================================================
-  # DESKTOP PACKAGES - Ora gestiti in ./packages.nix
-  # ============================================================================
-  # I pacchetti desktop sono centralizzati nel modulo packages.nix
-
-  # ============================================================================
-  # NUMLOCK ON STARTUP
-  # ============================================================================
-  systemd.services.numlock-on = lib.mkIf (hostConfig.type != "server") {
-    description = "Enable NumLock on startup";
-    wantedBy = [ "graphical.target" ];
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      ExecStart = "${pkgs.numlockx}/bin/numlockx on";
-      StandardInput = "tty";
-      TTYPath = "/dev/tty1";
-    };
-  };
 }

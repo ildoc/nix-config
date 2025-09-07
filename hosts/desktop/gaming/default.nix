@@ -31,30 +31,12 @@
   
   hardware.enableRedistributableFirmware = true;
 
-  # ============================================================================
-  # GAMING-SPECIFIC OVERRIDES
-  # ============================================================================
-  # Override del profilo se necessario
-  
-  # Num Lock abilitato all'avvio
-  systemd.services.numlock-on = {
-    description = "Enable NumLock on startup";
-    wantedBy = [ "graphical.target" ];
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      ExecStart = "${pkgs.numlockx}/bin/numlockx on";
-      StandardInput = "tty";
-      TTYPath = "/dev/tty1";
-    };
-  };
+  # RIMOSSO: systemd.services.numlock-on - gestito da KDE/Plasma
 
   # ============================================================================
   # GAMING-SPECIFIC PACKAGES
   # ============================================================================
-  # Pacchetti aggiuntivi specifici per questo desktop gaming
   environment.systemPackages = with pkgs; [
-    # Nessun pacchetto aggiuntivo per ora
-    # obs-studio è già incluso nel modulo gaming
+    # Aggiungi qui eventuali pacchetti specifici per questo host
   ];
 }

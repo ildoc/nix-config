@@ -33,13 +33,11 @@ in
     # .NET Development
     dotnetCombined
     
-    # Databases
+    # Databases (solo CLI tools - GUI in desktop/packages.nix)
     postgresql
     sqlite
-    dbeaver-bin
     
-    # API tools
-    postman
+    # API tools (solo CLI - GUI in desktop/packages.nix)
     curl
     httpie
 
@@ -48,9 +46,8 @@ in
     cmake
     gcc
     
-    # Container tools
-    docker
-    docker-compose
+    # Container tools (già in core/packages.nix se development enabled)
+    # docker e docker-compose sono gestiti da virtualisation.docker
     
     # Libraries
     icu
@@ -105,46 +102,6 @@ in
   programs.appimage = {
     enable = true;
     binfmt = true;
-  };
-
-  # ============================================================================
-  # DEVELOPMENT ALIASES
-  # ============================================================================
-  environment.shellAliases = {
-    # Node/npm
-    ni = "npm install";
-    nr = "npm run";
-    ns = "npm start";
-    nt = "npm test";
-    
-    # Python
-    py = "python3";
-    pip = "python3 -m pip";
-    venv = "python3 -m venv";
-    activate = "source venv/bin/activate";
-    
-    # .NET
-    dn = "dotnet";
-    dnr = "dotnet run";
-    dnb = "dotnet build";
-    dnt = "dotnet test";
-    dnw = "dotnet watch";
-    
-    # Docker compose shortcuts
-    dcu = "docker-compose up";
-    dcd = "docker-compose down";
-    dcl = "docker-compose logs";
-    dce = "docker-compose exec";
-    
-    # Git workflow
-    gf = "git fetch";
-    gfa = "git fetch --all";
-    gpu = "git pull upstream";
-    gpo = "git push origin";
-    gr = "git rebase";
-    gri = "git rebase -i";
-    grc = "git rebase --continue";
-    gra = "git rebase --abort";
   };
 
   # ============================================================================
