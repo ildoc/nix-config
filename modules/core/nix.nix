@@ -29,13 +29,11 @@ in
       # Gestione spazio disco
       max-free = toString (5 * 1024 * 1024 * 1024);  # 5GB
       min-free = toString (1 * 1024 * 1024 * 1024);  # 1GB
-
-      keep-outputs = true;
-      keep-derivations = true;
       
-      # Parallel downloads
-      http-connections = 50;
-      max-substitution-jobs = 16;
+      # RIMOSSI: keep-outputs e keep-derivations che causano problemi
+      # RIDOTTI: valori più conservativi per evitare sovraccarico
+      http-connections = 25;  # Ridotto da 50
+      max-substitution-jobs = 8;  # Ridotto da 16
     };
     
     # Garbage collection automatica
@@ -44,7 +42,7 @@ in
       dates = "weekly";
       options = "--delete-older-than 7d";
       persistent = true;
-      randomizedDelaySec = "45min";
+      # RIMOSSO: randomizedDelaySec che può causare conflitti
     };
     
     # Ottimizzazione store
@@ -52,5 +50,16 @@ in
       automatic = true;
       dates = [ "weekly" ];
     };
+    
+    # Extra options SICURE
+    extraOptions = ''
+      # Mantieni derivazioni per rollback
+      keep-outputs = false
+      keep-derivations = false
+      # Timeout connection più ragionevoli
+      connect-timeout = 5
+      # Fallback se binary cache fallisce
+      fallback = true
+    '';
   };
 }

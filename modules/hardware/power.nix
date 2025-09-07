@@ -1,4 +1,11 @@
-{ config, lib, inputs, globalConfig, hostConfig, ... }:
+{
+  config,
+  lib,
+  inputs,
+  globalConfig,
+  hostConfig,
+  ...
+}:
 
 let
   cfg = globalConfig;
@@ -12,92 +19,65 @@ in
   config = lib.mkIf isLaptop {
     # Disabilita power-profiles-daemon (conflitto con TLP)
     services.power-profiles-daemon.enable = false;
-    
+
     services.tlp = {
       enable = true;
       settings = {
-        # CPU Governor
-        CPU_SCALING_GOVERNOR_ON_AC = "performance";
+        # Per CPU AMD Ryzen su Slimbook
+        CPU_SCALING_GOVERNOR_ON_AC = "schedutil"; # Meglio di "performance" per AMD
         CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
-        
-        # Energy Performance
-        CPU_ENERGY_PERF_POLICY_ON_AC = "performance";
-        CPU_ENERGY_PERF_POLICY_ON_BAT = "balance_power";
-        
-        # Turbo Boost
-        CPU_BOOST_ON_AC = 1;
-        CPU_BOOST_ON_BAT = 0;
-        
-        # CPU Frequency Limits
-        CPU_SCALING_MIN_FREQ_ON_AC = 0;
-        CPU_SCALING_MAX_FREQ_ON_AC = 0;
-        CPU_SCALING_MIN_FREQ_ON_BAT = 0;
-        CPU_SCALING_MAX_FREQ_ON_BAT = 2400000;
-        
-        # Battery Thresholds
-        START_CHARGE_THRESH_BAT0 = lib.mkIf hasBattery 20;
-        STOP_CHARGE_THRESH_BAT0 = lib.mkIf hasBattery 80;
-        
-        # USB Power - IMPORTANTE: Disabilita autosuspend per evitare disconnessioni audio
-        USB_AUTOSUSPEND = 0;  # Cambiato da 1 a 0
-        USB_BLACKLIST_PHONE = 1;
-        USB_AUTOSUSPEND_DISABLE_ON_SHUTDOWN = 1;
-        
-        # PCIe Power
-        PCIE_ASPM_ON_AC = "performance";
-        PCIE_ASPM_ON_BAT = "powersupersave";
-        
-        # Runtime PM - Disabilita per evitare problemi audio
+
+        # IMPORTANTE: Disabilita completamente USB autosuspend
+        USB_AUTOSUSPEND = 0;
+        USB_BLACKLIST = "0bda:*"; # Aggiungi per Realtek devices
+
+        # Fix per AMD Graphics
+        RADEON_DPM_STATE_ON_AC = "performance";
+        RADEON_DPM_STATE_ON_BAT = "battery";
+        RADEON_POWER_PROFILE_ON_AC = "default";
+        RADEON_POWER_PROFILE_ON_BAT = "low";
+
+        # Disabilita TUTTI i power saving che causano problemi
         RUNTIME_PM_ON_AC = "off";
-        RUNTIME_PM_ON_BAT = "off";  # Cambiato da "on" a "off"
-        
-        # WiFi Power
-        WIFI_PWR_ON_AC = "off";
-        WIFI_PWR_ON_BAT = "on";
-        
-        # Sound Power Saving - Disabilita per evitare disconnessioni
+        RUNTIME_PM_ON_BAT = "off";
         SOUND_POWER_SAVE_ON_AC = 0;
-        SOUND_POWER_SAVE_ON_BAT = 0;  # Cambiato da 1 a 0
-        
-        # Disk APM
-        DISK_APM_LEVEL_ON_AC = "255 255";
-        DISK_APM_LEVEL_ON_BAT = "128 128";
-        
-        # SATA Link Power
-        SATA_LINKPWR_ON_AC = "max_performance";
-        SATA_LINKPWR_ON_BAT = "med_power_with_dipm";
+        SOUND_POWER_SAVE_ON_BAT = 0;
+
+        # Per NVMe SSD
+        AHCI_RUNTIME_PM_ON_AC = "off";
+        AHCI_RUNTIME_PM_ON_BAT = "off";
       };
     };
-    
+
     # ============================================================================
     # LAPTOP HARDWARE FEATURES
     # ============================================================================
     programs.light.enable = true;
     services.thermald.enable = true;
-    
+
     # Configurazioni Logind - CORRETTE per NixOS
     services.logind = {
       lidSwitch = "suspend";
       lidSwitchExternalPower = "lock";
       lidSwitchDocked = "ignore";
-      
+
       # Opzioni extraConfig per configurazioni aggiuntive
       extraConfig = ''
         # Timeout per idle (in secondi)
         IdleAction=lock
         IdleActionSec=1800
-        
+
         # Gestione tasti power
         HandlePowerKey=poweroff
         HandlePowerKeyLongPress=reboot
         HandleSuspendKey=suspend
         HandleHibernateKey=hibernate
-        
+
         # Non ignorare gli inibitori del lid switch
         LidSwitchIgnoreInhibited=no
       '';
     };
-    
+
     # ============================================================================
     # LAPTOP OPTIMIZATIONS
     # ============================================================================

@@ -12,10 +12,22 @@ in
   # SYSTEM CONFIGURATION
   # ============================================================================
   system.stateVersion = cfg.system.stateVersion;
-  systemd.services.accounts-daemon.restartIfChanged = false;
   
-  # ============================================================================
-  # BASE PACKAGES - Ora gestiti dal modulo core/packages.nix
-  # ============================================================================
-  # I pacchetti base sono definiti in modules/core/packages.nix
+  # FIX: Previeni restart di servizi critici durante switch
+  systemd.services = {
+    accounts-daemon.restartIfChanged = false;
+    nix-daemon.restartIfChanged = false;  # AGGIUNGI QUESTA
+    systemd-logind.restartIfChanged = false;  # E QUESTA
+  };
+  
+  # Disabilita accounts-daemon completamente per KDE
+  services.accounts-daemon.enable = lib.mkForce false;
+  
+  # Assicura che dbus sia configurato correttamente
+  services.dbus = {
+    enable = true;
+    packages = [ pkgs.dconf ];
+  };
+  
+  programs.dconf.enable = true;
 }
