@@ -58,7 +58,7 @@ in
   # ============================================================================
   # ALIASES GLOBALI - Centralizzati qui
   # ============================================================================
-  eenvironment.shellAliases = {
+  environment.shellAliases = {    # FIX: era "eenvironment" con doppia 'e'
     # RIMOSSI: Git shortcuts (già in shell.nix)
     # RIMOSSI: System shortcuts base (già in shell.nix)
     
