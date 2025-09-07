@@ -71,10 +71,10 @@ in
   # ============================================================================
   # SWITCH CONFIGURATION - Usa switch-to-configuration più sicuro
   # ============================================================================
-  system.switch = {
-    enable = true;
-    enableNg = false; # Disabilita il nuovo switch che può causare problemi
-  };
+  # system.switch = {
+  #   enable = true;
+  #   enableNg = false; # Disabilita il nuovo switch che può causare problemi
+  # };
   
   # ============================================================================
   # JOURNALD - Configurazione che non richiede restart

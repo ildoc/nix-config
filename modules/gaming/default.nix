@@ -1,4 +1,12 @@
-{ config, pkgs, lib, inputs, globalConfig, hostConfig, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  inputs,
+  globalConfig,
+  hostConfig,
+  ...
+}:
 
 let
   cfg = globalConfig;
@@ -19,7 +27,7 @@ in
   # ============================================================================
   programs.gamemode = {
     enable = true;
-    
+
     settings = {
       general = {
         renice = gamingCfg.gamemode.renice;
@@ -28,7 +36,7 @@ in
         softrealtime = "auto";
         reaper_freq = 5;
       };
-      
+
       filter = {
         whitelist = [
           "steam"
@@ -38,13 +46,13 @@ in
           "bottles"
         ];
       };
-      
+
       gpu = {
         apply_gpu_optimisations = "accept-responsibility";
         gpu_device = 0;
         amd_performance_level = "high";
       };
-      
+
       cpu = {
         park_cores = "no";
         pin_cores = "no";
@@ -68,11 +76,11 @@ in
   # KERNEL OPTIMIZATIONS
   # ============================================================================
   boot.kernel.sysctl = {
-    # Memory management
-    "vm.swappiness" = gamingCfg.kernel.swappiness;
+    # Memory management - Gaming vuole swappiness più basso
+    "vm.swappiness" = lib.mkForce gamingCfg.kernel.swappiness; # mkForce per override
     "vm.dirty_ratio" = gamingCfg.kernel.dirtyRatio;
     "vm.dirty_background_ratio" = 2;
-    
+
     # Network for gaming
     "net.core.rmem_default" = 31457280;
     "net.core.rmem_max" = 134217728;
@@ -80,7 +88,7 @@ in
     "net.core.wmem_max" = 134217728;
     "net.core.netdev_max_backlog" = 5000;
   };
-  
+
   boot.kernelParams = [
     "preempt=full"
     "nowatchdog"
@@ -104,24 +112,27 @@ in
     lutris
     heroic
     bottles
-    
+
     # Gaming tools
     gamemode
     mangohud
     goverlay
-    
+
     # Communication
     discord
-    
+
     # Streaming/Recording
     obs-studio
   ];
-  
+
   # ============================================================================
   # USER GROUPS
   # ============================================================================
-  users.users.filippo.extraGroups = [ "gamemode" "audio" ];
-  
+  users.users.filippo.extraGroups = [
+    "gamemode"
+    "audio"
+  ];
+
   # ============================================================================
   # SERVICES
   # ============================================================================

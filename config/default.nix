@@ -331,4 +331,18 @@ rec {
       # Server non ha taskbar o applicazioni desktop
     };
   };
+
+  sysctl = {
+    desktop = {
+      swappiness = 10;
+      vfsCachePressure = 50;
+    };
+
+    server = {
+      swappiness = 10;
+      # altri valori server...
+    };
+
+    # Gaming override è già in gaming.kernel
+  };
 }

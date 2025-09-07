@@ -61,7 +61,7 @@ in
     
     # Performance
     "net.ipv4.tcp_congestion_control" = "bbr";
-    "vm.swappiness" = 10;
+    "vm.swappiness" = lib.mkDefault cfg.sysctl.server.swappiness;
   };
 
   # ============================================================================

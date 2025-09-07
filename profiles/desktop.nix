@@ -1,4 +1,12 @@
-{ config, pkgs, lib, inputs, globalConfig, hostConfig, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  inputs,
+  globalConfig,
+  hostConfig,
+  ...
+}:
 
 {
   imports = [
@@ -16,21 +24,21 @@
         configurationLimit = 5;
         editor = false;
       };
-      
+
       efi = {
         canTouchEfiVariables = true;
         efiSysMountPoint = "/boot";
       };
-      
+
       timeout = 5;
     };
-    
+
     # Desktop non ha bisogno di compressione estrema
     initrd = {
       compressor = "zstd";
-      compressorArgs = ["-3"];
+      compressorArgs = [ "-3" ];
     };
-    
+
     # Kernel parameters per desktop
     kernelParams = [
       "quiet"
@@ -58,8 +66,8 @@
   # DESKTOP OPTIMIZATIONS
   # ============================================================================
   boot.kernel.sysctl = {
-    "vm.swappiness" = 10;
-    "vm.vfs_cache_pressure" = 50;
+    "vm.swappiness" = lib.mkDefault cfg.sysctl.desktop.swappiness;
+    "vm.vfs_cache_pressure" = lib.mkDefault cfg.sysctl.desktop.vfsCachePressure;
   };
 
   # ============================================================================
@@ -70,7 +78,7 @@
     enable = true;
     cpuFreqGovernor = lib.mkDefault "performance";
   };
-  
+
   services.power-profiles-daemon.enable = false;
 
   # ============================================================================
