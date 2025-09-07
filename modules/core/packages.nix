@@ -58,9 +58,7 @@ in
   # ============================================================================
   # ALIASES GLOBALI - Centralizzati qui
   # ============================================================================
-  environment.shellAliases = {    # FIX: era "eenvironment" con doppia 'e'
-    # RIMOSSI: Git shortcuts (già in shell.nix)
-    # RIMOSSI: System shortcuts base (già in shell.nix)
+  environment.shellAliases = {
     
     # NixOS shortcuts specifici
     rebuild = "sudo nixos-rebuild switch --flake .";

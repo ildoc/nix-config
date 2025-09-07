@@ -6,6 +6,7 @@ in
 {
   imports = [
     ../modules/core
+    ../modules/hardware/auto-config.nix
   ];
 
   # ============================================================================

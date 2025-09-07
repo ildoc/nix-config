@@ -38,7 +38,11 @@ rec {
       # gitEmail viene da sops
       groups = {
         base = [ "wheel" ];
-        desktop = [ "networkmanager" "video" "audio" ];
+        desktop = [
+          "networkmanager"
+          "video"
+          "audio"
+        ];
         development = [ "docker" ];
         gaming = [ "gamemode" ];
       };
@@ -56,7 +60,7 @@ rec {
         foto = "/mnt/data/foto";
       };
     };
-    
+
     location = {
       # Per Night Color e servizi location-based
       latitude = "44.4056";
@@ -82,21 +86,40 @@ rec {
     ssh = 22;
     http = 80;
     https = 443;
-    
+
     development = {
       common = 3000;
       alternate = 8080;
       additional = 9000;
     };
-    
+
     gaming = {
-      steam = [ 27015 27036 ];
-      steamUDP = [ 27015 27031 27036 ];
+      steam = [
+        27015
+        27036
+      ];
+      steamUDP = [
+        27015
+        27031
+        27036
+      ];
     };
-    
+
     kde = {
       # KDE Connect usa le porte 1714-1764 TCP e UDP
-      connect = [ 1714 1715 1716 1717 1718 1719 1720 1721 1722 1723 1724 ];
+      connect = [
+        1714
+        1715
+        1716
+        1717
+        1718
+        1719
+        1720
+        1721
+        1722
+        1723
+        1724
+      ];
     };
   };
 
@@ -113,25 +136,30 @@ rec {
         size = 24;
       };
     };
-    
+
     panel = {
       height = 44;
       location = "bottom";
     };
-    
+
     virtualDesktops = {
       number = 4;
-      names = [ "Main" "Dev" "Communication" "Extra" ];
+      names = [
+        "Main"
+        "Dev"
+        "Communication"
+        "Extra"
+      ];
     };
-    
+
     powerManagement = {
       ac = {
-        dimAfter = 900;      # 15 minuti - aumentato per evitare conflitti
+        dimAfter = 900; # 15 minuti - aumentato per evitare conflitti
         screenOffAfter = 1800; # 30 minuti
       };
       battery = {
-        dimAfter = 300;      # 5 minuti
-        suspendAfter = 900;  # 15 minuti - aumentato per coordinamento con logind
+        dimAfter = 300; # 5 minuti
+        suspendAfter = 900; # 15 minuti - aumentato per coordinamento con logind
       };
     };
   };
@@ -141,14 +169,17 @@ rec {
   # ============================================================================
   development = {
     dotnet = {
-      versions = [ "8.0" "9.0" ];
+      versions = [
+        "8.0"
+        "9.0"
+      ];
       telemetryOptOut = true;
     };
-    
+
     nodejs = {
       version = "22";
     };
-    
+
     docker = {
       pruneSchedule = "weekly";
       enableBuildkit = true;
@@ -163,12 +194,12 @@ rec {
       renice = 10;
       ioprio = 7;
     };
-    
+
     audio = {
       sampleRate = 48000;
       quantum = 32;
     };
-    
+
     kernel = {
       swappiness = 1;
       dirtyRatio = 3;
@@ -182,15 +213,22 @@ rec {
     slimbook = {
       type = "laptop";
       description = "Slimbook Laptop - Development workstation";
-      
+
       hardware = {
-        cpu = "amd";
-        graphics = "amd";
+        cpu = {
+          vendor = "amd"; # amd | intel
+          model = "8845HS"; # Opzionale, per riferimento
+        };
+        graphics = {
+          primary = "amd"; # amd | intel | nvidia
+          discrete = null; # null | nvidia | amd per GPU discrete
+          model = "780M"; # Opzionale, per riferimento
+        };
         hasBattery = true;
         hasBluetooth = true;
         hasWifi = true;
       };
-      
+
       features = {
         desktop = true;
         development = true;
@@ -198,14 +236,14 @@ rec {
         gaming = false;
         vscodeServer = false;
       };
-      
+
       vpn = {
         connectionName = "Wg Casa";
         configFile = "wg0.conf";
         interface = "wg0";
         description = "Wireguard server di casa";
       };
-      
+
       # Lista delle applicazioni pinnate nella taskbar (solo nomi per riferimento)
       taskbar = {
         pinned = [
@@ -221,19 +259,26 @@ rec {
       };
       # RIMOSSO: applications.additional - i pacchetti vanno nel file host
     };
-    
+
     gaming = {
       type = "desktop";
       description = "Gaming Desktop - High performance gaming rig";
-      
+
       hardware = {
-        cpu = "intel";
-        graphics = "nvidia"; # o "amd" a seconda della tua GPU
+        cpu = {
+          vendor = "amd"; # O intel, dipende dal tuo sistema
+          model = null; # Specifica se vuoi
+        };
+        graphics = {
+          primary = "nvidia"; # GPU principale
+          discrete = null; # null per desktop con una sola GPU
+          model = "GTX1070"; # Per riferimento
+        };
         hasBattery = false;
         hasBluetooth = true;
         hasWifi = true;
       };
-      
+
       features = {
         desktop = true;
         development = false;
@@ -241,7 +286,7 @@ rec {
         gaming = true;
         vscodeServer = false;
       };
-      
+
       taskbar = {
         pinned = [
           "org.kde.dolphin"
@@ -256,19 +301,25 @@ rec {
       };
       # RIMOSSO: applications.additional
     };
-    
+
     dev-server = {
       type = "server";
       description = "Development Server - Headless development environment";
-      
+
       hardware = {
-        cpu = "intel";
-        graphics = "none";
+        cpu = {
+          vendor = "virtual"; # virtual per VM
+          model = null;
+        };
+        graphics = {
+          primary = "virtual"; # virtual per VM
+          discrete = null;
+        };
         hasBattery = false;
         hasBluetooth = false;
         hasWifi = false;
       };
-      
+
       features = {
         desktop = false;
         development = true;
@@ -276,7 +327,7 @@ rec {
         gaming = false;
         vscodeServer = true;
       };
-      
+
       # Server non ha taskbar o applicazioni desktop
     };
   };
