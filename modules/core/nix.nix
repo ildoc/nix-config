@@ -18,11 +18,15 @@ in
       max-jobs = "auto";
       cores = 0; # Usa tutti i core disponibili
       
+      keep-outputs = true;
+      keep-derivations = true;
+
       # Cache
       substituters = [
         "https://cache.nixos.org/"
         "https://nix-community.cachix.org"
       ];
+      extra-substituters = [ "file:///var/cache/nix" ];
       
       trusted-public-keys = [
         "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
