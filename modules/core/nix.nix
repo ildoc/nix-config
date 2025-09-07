@@ -5,7 +5,7 @@ let
 in
 {
   # ============================================================================
-  # NIX CONFIGURATION - CENTRALIZZATA
+  # NIX CONFIGURATION - OTTIMIZZATA
   # ============================================================================
   nixpkgs.config.allowUnfree = true;
 
@@ -13,9 +13,12 @@ in
     settings = {
       experimental-features = [ "nix-command" "flakes" ];
       auto-optimise-store = true;
-      max-jobs = "auto";
-      cores = 0;
       
+      # Ottimizzazioni CPU
+      max-jobs = "auto";
+      cores = 0; # Usa tutti i core disponibili
+      
+      # Cache
       substituters = [
         "https://cache.nixos.org/"
         "https://nix-community.cachix.org"
@@ -30,36 +33,49 @@ in
       max-free = toString (5 * 1024 * 1024 * 1024);  # 5GB
       min-free = toString (1 * 1024 * 1024 * 1024);  # 1GB
       
-      # RIMOSSI: keep-outputs e keep-derivations che causano problemi
-      # RIDOTTI: valori più conservativi per evitare sovraccarico
-      http-connections = 25;  # Ridotto da 50
-      max-substitution-jobs = 8;  # Ridotto da 16
+      # Ottimizzazioni di rete più conservative
+      http-connections = 25;
+      max-substitution-jobs = 8;
+      
+      # Abilita build in sandbox per sicurezza
+      sandbox = true;
+      
+      # Trusted users per operazioni senza sudo
+      trusted-users = [ "@wheel" ];
     };
     
-    # Garbage collection automatica
+    # Garbage collection automatica ottimizzata
     gc = {
       automatic = true;
       dates = "weekly";
-      options = "--delete-older-than 7d";
+      options = "--delete-older-than 14d"; # Mantieni 2 settimane invece di 7 giorni
       persistent = true;
-      # RIMOSSO: randomizedDelaySec che può causare conflitti
     };
     
     # Ottimizzazione store
     optimise = {
       automatic = true;
-      dates = [ "weekly" ];
+      dates = [ "03:45" ]; # Esegui di notte
     };
     
-    # Extra options SICURE
+    # Extra options sicure e ottimizzate
     extraOptions = ''
-      # Mantieni derivazioni per rollback
-      keep-outputs = false
-      keep-derivations = false
-      # Timeout connection più ragionevoli
+      # Mantieni outputs per debug
+      keep-outputs = true
+      keep-derivations = true
+      
+      # Timeout più ragionevoli
       connect-timeout = 5
+      stalled-download-timeout = 300
+      
       # Fallback se binary cache fallisce
       fallback = true
+      
+      # Warn invece di fail per firme non fidate
+      warn-dirty = true
+      
+      # Abilita diff-hook per vedere differenze
+      diff-hook = ${lib.getExe config.nix.package} store diff-closures
     '';
   };
 }

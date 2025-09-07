@@ -23,45 +23,62 @@ in
     services.tlp = {
       enable = true;
       settings = {
-        # Per CPU AMD Ryzen su Slimbook
-        CPU_SCALING_GOVERNOR_ON_AC = "schedutil"; # Meglio di "performance" per AMD
+        # ============================================================================
+        # FIX PRINCIPALE: Rimuovi opzioni che possono causare blocchi
+        # ============================================================================
+        
+        # CPU - Mantieni semplice
+        CPU_SCALING_GOVERNOR_ON_AC = "schedutil";
         CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
-
-        # IMPORTANTE: Disabilita completamente USB autosuspend
-        USB_AUTOSUSPEND = 0;
-        USB_BLACKLIST = "0bda:*"; # Aggiungi per Realtek devices
-
-        # Fix per AMD Graphics
-        RADEON_DPM_STATE_ON_AC = "performance";
-        RADEON_DPM_STATE_ON_BAT = "battery";
-        RADEON_POWER_PROFILE_ON_AC = "default";
-        RADEON_POWER_PROFILE_ON_BAT = "low";
-
-        # Disabilita TUTTI i power saving che causano problemi
+        
+        # IMPORTANTE: Usa valori numerici corretti per USB_AUTOSUSPEND
+        USB_AUTOSUSPEND = 0;  # Disabilita completamente
+        
+        # AMD Graphics - Rimuovi opzioni che potrebbero non esistere sul tuo hardware
+        # Commenta queste se causano problemi:
+        # RADEON_DPM_STATE_ON_AC = "performance";
+        # RADEON_DPM_STATE_ON_BAT = "battery";
+        # RADEON_POWER_PROFILE_ON_AC = "default";
+        # RADEON_POWER_PROFILE_ON_BAT = "low";
+        
+        # Runtime PM - Usa stringhe corrette
         RUNTIME_PM_ON_AC = "off";
         RUNTIME_PM_ON_BAT = "off";
+        
+        # Sound power save
         SOUND_POWER_SAVE_ON_AC = 0;
         SOUND_POWER_SAVE_ON_BAT = 0;
-
-        # Per NVMe SSD
-        AHCI_RUNTIME_PM_ON_AC = "off";
-        AHCI_RUNTIME_PM_ON_BAT = "off";
+        
+        # NVMe/SATA - Rimuovi se causano problemi
+        # AHCI_RUNTIME_PM_ON_AC = "off";
+        # AHCI_RUNTIME_PM_ON_BAT = "off";
+        
+        # Aggiungi START_CHARGE_THRESH e STOP_CHARGE_THRESH se supportati
+        # START_CHARGE_THRESH_BAT0 = 75;
+        # STOP_CHARGE_THRESH_BAT0 = 80;
       };
+    };
+
+    # ============================================================================
+    # FIX: Assicura che TLP non venga riavviato durante rebuild
+    # ============================================================================
+    systemd.services.tlp = {
+      restartIfChanged = false;
+      reloadIfChanged = true;
     };
 
     # ============================================================================
     # LAPTOP HARDWARE FEATURES
     # ============================================================================
     programs.light.enable = true;
-    services.thermald.enable = true;
+    services.thermald.enable = lib.mkDefault false; # Disabilita se causa conflitti con AMD
 
-    # Configurazioni Logind - CORRETTE per NixOS
+    # Configurazioni Logind
     services.logind = {
       lidSwitch = "suspend";
       lidSwitchExternalPower = "lock";
       lidSwitchDocked = "ignore";
 
-      # Opzioni extraConfig per configurazioni aggiuntive
       extraConfig = ''
         # Timeout per idle (in secondi)
         IdleAction=lock
