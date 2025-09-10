@@ -66,8 +66,8 @@
   # DESKTOP OPTIMIZATIONS
   # ============================================================================
   boot.kernel.sysctl = {
-    "vm.swappiness" = lib.mkDefault cfg.sysctl.desktop.swappiness;
-    "vm.vfs_cache_pressure" = lib.mkDefault cfg.sysctl.desktop.vfsCachePressure;
+    "vm.swappiness" = lib.mkDefault globalConfig.sysctl.desktop.swappiness;
+    "vm.vfs_cache_pressure" = lib.mkDefault globalConfig.sysctl.desktop.vfsCachePressure;
   };
 
   # ============================================================================

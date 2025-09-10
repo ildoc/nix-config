@@ -1,4 +1,12 @@
-{ config, pkgs, lib, inputs, hostConfig, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  inputs,
+  globalConfig,
+  hostConfig,
+  ...
+}:
 
 let
   cfg = globalConfig;
@@ -18,12 +26,12 @@ in
         device = "/dev/sda"; # Aggiusta in base al tuo sistema
       };
     };
-    
+
     # Server: compressione veloce per boot rapidi
     initrd = {
       compressor = "gzip";
     };
-    
+
     # Kernel parameters per server
     kernelParams = [
       "console=tty0"
@@ -37,7 +45,7 @@ in
   services.xserver.enable = false;
   sound.enable = false;
   services.pulseaudio.enable = false;
-  
+
   # ============================================================================
   # SERVER NETWORK
   # ============================================================================
@@ -54,14 +62,14 @@ in
     "net.core.wmem_max" = 134217728;
     "net.ipv4.tcp_rmem" = "4096 87380 134217728";
     "net.ipv4.tcp_wmem" = "4096 65536 134217728";
-    
+
     # Connection handling
     "net.core.somaxconn" = 1024;
     "net.ipv4.tcp_max_syn_backlog" = 1024;
-    
+
     # Performance
     "net.ipv4.tcp_congestion_control" = "bbr";
-    "vm.swappiness" = lib.mkDefault cfg.sysctl.server.swappiness;
+    "vm.swappiness" = lib.mkDefault globalConfig.sysctl.server.swappiness;
   };
 
   # ============================================================================
@@ -112,28 +120,28 @@ in
     htop
     iotop
     netdata
-    
+
     # Network diagnostics
     bind
     traceroute
     iperf3
-    
+
     # Editor
     nano
     vim
-    
+
     # Utilities
     rsync
     screen
     tmux
-    
+
     # Backup
     rclone
     borgbackup
-    
+
     # Log analysis
     lnav
-    
+
     # System info
     neofetch
   ];
@@ -143,11 +151,16 @@ in
   # ============================================================================
   networking.firewall = {
     enable = true;
-    allowedTCPPorts = [ 
+    allowedTCPPorts = [
       cfg.ports.ssh
       cfg.ports.http
       cfg.ports.https
-    ] ++ (with cfg.ports.development; [ common alternate additional ]);
+    ]
+    ++ (with cfg.ports.development; [
+      common
+      alternate
+      additional
+    ]);
   };
 
   # ============================================================================
