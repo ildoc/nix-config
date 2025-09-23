@@ -35,40 +35,37 @@ in
     # ============================================================================
     # IMPORT SERVICE - FIXED TO NOT AUTO-CONNECT
     # ============================================================================
-    systemd.services.import-wireguard-to-nm = {
-      description = "Import WireGuard configuration to NetworkManager";
-      after = [
-        "network-manager.service"
-        "sops-nix.service"
-        "setup-wireguard-config.service"
-      ];
-      wants = [
-        "network-manager.service"
-        "setup-wireguard-config.service"
-      ];
-      wantedBy = [ "network-online.target" ];
+    systemd.services.import-wireguard-to-nm =
+      let
+        vpnName = hostConfig.vpn.connectionName or "Wg Casa";
+        configFile = hostConfig.vpn.configFile or "wg0.conf";
+      in
+      {
+        description = "Import WireGuard configuration to NetworkManager";
+        after = [
+          "network-manager.service"
+          "sops-nix.service"
+          "setup-wireguard-config.service"
+        ];
+        wants = [
+          "network-manager.service"
+          "setup-wireguard-config.service"
+        ];
+        wantedBy = [ "network-online.target" ];
 
-      restartIfChanged = false;
-      stopIfChanged = false;
+        restartIfChanged = false;
+        stopIfChanged = false;
 
-      serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = true;
-        # Rimuovi Restart automatico
-        # Restart = "on-failure";
-        # RestartSec = "10s";
-        TimeoutStartSec = "60s";
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+          TimeoutStartSec = "60s";
 
-        # Esegui solo se il file di configurazione esiste
-        ConditionPathExists = "/etc/wireguard/${configFile}";
-      };
+          # Esegui solo se il file di configurazione esiste
+          ConditionPathExists = "/etc/wireguard/${configFile}";
+        };
 
-      script =
-        let
-          vpnName = hostConfig.vpn.connectionName or "Wg Casa";
-          configFile = hostConfig.vpn.configFile or "wg0.conf";
-        in
-        ''
+        script = ''
           set -e
 
           echo "=== WireGuard NetworkManager Import ==="
@@ -126,7 +123,7 @@ in
           echo "✓ WireGuard imported and configured for manual activation only!"
           echo "Use 'vpn-connect' to manually connect when needed."
         '';
-    };
+      };
 
     # ============================================================================
     # VPN ALIASES
