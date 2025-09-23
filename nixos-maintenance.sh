@@ -723,4 +723,65 @@ case "$COMMAND" in
         echo -e "  $0 [OPZIONI] COMANDO [ARGOMENTI]"
         echo ""
         
-        echo -e "${
+        echo -e "${BOLD}OPZIONI GLOBALI:${NC}"
+        echo -e "  -y, --yes           Conferma automaticamente tutte le richieste"
+        echo -e "  -v, --verbose       Output dettagliato"
+        echo -e "  -h, --help          Mostra questo messaggio"
+        echo ""
+        
+        echo -e "${BOLD}COMANDI DISPONIBILI:${NC}"
+        echo ""
+        
+        echo -e "${GREEN}Aggiornamento:${NC}"
+        echo -e "  update              Aggiornamento completo con verifiche"
+        echo -e "  update-quick        Aggiornamento rapido senza test"
+        echo -e "  update-check        Controlla aggiornamenti disponibili"
+        echo ""
+        
+        echo -e "${GREEN}Gestione Sistema:${NC}"
+        echo -e "  test                Test configurazione (temporaneo)"
+        echo -e "  switch              Applica configurazione (permanente)"
+        echo -e "  boot                Imposta configurazione per prossimo boot"
+        echo -e "  build               Build configurazione senza applicare"
+        echo -e "  rollback            Torna a generazione precedente"
+        echo ""
+        
+        echo -e "${GREEN}Manutenzione:${NC}"
+        echo -e "  clean               Pulizia sistema (generazioni, garbage collection)"
+        echo -e "  repair              Riparazione store Nix"
+        echo ""
+        
+        echo -e "${GREEN}Informazioni:${NC}"
+        echo -e "  status|check        Stato del sistema"
+        echo -e "  diff                Differenze tra sistema attuale e configurazione"
+        echo -e "  changelog           Changelog NixOS"
+        echo ""
+        
+        echo -e "${BOLD}ESEMPI:${NC}"
+        echo -e "  $0 update                    # Aggiornamento interattivo completo"
+        echo -e "  $0 -y update-quick           # Aggiornamento rapido automatico"
+        echo -e "  $0 clean                     # Pulizia interattiva"
+        echo -e "  $0 status                    # Mostra stato sistema"
+        echo -e "  $0 test                      # Test configurazione"
+        echo -e "  $0 -v diff                   # Mostra differenze con output verboso"
+        echo ""
+        
+        echo -e "${BOLD}WORKFLOW SUGGERITO:${NC}"
+        echo -e "  1. $0 update-check           # Controlla cosa c'è di nuovo"
+        echo -e "  2. $0 update                 # Aggiorna con verifiche"
+        echo -e "  3. $0 clean                  # Pulisci dopo l'aggiornamento"
+        echo ""
+        
+        echo -e "${CYAN}Per maggiori informazioni, consulta la documentazione NixOS.${NC}"
+        ;;
+esac
+
+# Check dependencies alla fine (per comandi che ne hanno bisogno)
+case "$COMMAND" in
+    update|update-quick|update-check|test|switch|boot|build|diff|clean|repair)
+        check_dependencies
+        ;;
+esac
+
+# Exit con codice appropriato
+exit 0
