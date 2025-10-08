@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-# Script di manutenzione NixOS
+# Script di manutenzione NixOS - Versione Migliorata
 set -euo pipefail
 
-# Determina la directory dello script (dove si trova il flake.nix reale)
+# Determina la directory dello script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NIXOS_CONFIG="$SCRIPT_DIR"
 HOSTNAME="${HOSTNAME:-$(hostname)}"
@@ -21,7 +21,14 @@ NC='\033[0m'
 AUTO_YES=false
 VERBOSE=false
 
-# Funzioni helper
+# File di log temporanei
+BUILD_LOG="/tmp/nixos-build-$(date +%s).log"
+trap "rm -f $BUILD_LOG" EXIT
+
+# ============================================================================
+# FUNZIONI HELPER
+# ============================================================================
+
 log_info() { echo -e "${BLUE}ℹ${NC} $1"; }
 log_success() { echo -e "${GREEN}✓${NC} $1"; }
 log_warning() { echo -e "${YELLOW}⚠${NC} $1"; }
@@ -33,13 +40,12 @@ log_verbose() {
     fi
 }
 
-# Funzione per gestire conferme con supporto -y
 confirm() {
     local prompt="$1"
     local default="${2:-n}"
     
     if [ "$AUTO_YES" = true ]; then
-        log_verbose "Auto-confirm: $prompt (auto-yes enabled)"
+        log_verbose "Auto-confirm: $prompt"
         return 0
     fi
     
@@ -48,21 +54,16 @@ confirm() {
     read -r response
     response="${response:-$default}"
     
-    if [[ "${response,,}" == "y" || "${response,,}" == "yes" ]]; then
-        return 0
-    else
-        return 1
-    fi
+    [[ "${response,,}" =~ ^(y|yes)$ ]]
 }
 
-# Funzione per prompt con timeout e default con supporto -y
 prompt_with_timeout() {
     local prompt="$1"
     local default="$2"
     local timeout="${3:-10}"
     
     if [ "$AUTO_YES" = true ]; then
-        log_verbose "Auto-prompt: $prompt (using default: $default)"
+        log_verbose "Auto-prompt: using default: $default"
         echo "$default"
         return
     fi
@@ -71,61 +72,14 @@ prompt_with_timeout() {
     echo -ne "${YELLOW}${prompt} [default: ${default} in ${timeout}s]: ${NC}"
     
     if read -r -t "$timeout" response; then
-        response="${response:-$default}"
+        echo "${response:-$default}"
     else
         echo ""
-        log_info "Timeout raggiunto, uso default: ${default}"
-        response="$default"
+        log_info "Timeout - usando default: ${default}"
+        echo "$default"
     fi
-    
-    echo "$response"
 }
 
-# Funzione per parsing degli argomenti
-parse_args() {
-    local command=""
-    local remaining_args=()
-    
-    while [[ $# -gt 0 ]]; do
-        case "$1" in
-            -y|--yes|--assume-yes)
-                AUTO_YES=true
-                log_verbose "Auto-yes mode enabled"
-                shift
-                ;;
-            -v|--verbose)
-                VERBOSE=true
-                shift
-                ;;
-            -h|--help)
-                command="help"
-                shift
-                ;;
-            -*)
-                log_error "Opzione non riconosciuta: $1"
-                log_info "Usa --help per vedere le opzioni disponibili"
-                exit 1
-                ;;
-            *)
-                if [ -z "$command" ]; then
-                    command="$1"
-                else
-                    remaining_args+=("$1")
-                fi
-                shift
-                ;;
-        esac
-    done
-    
-    # Se non c'è comando, default a help
-    command="${command:-help}"
-    
-    # Esporta le variabili per l'uso globale
-    COMMAND="$command"
-    REMAINING_ARGS=("${remaining_args[@]}")
-}
-
-# Verifica dipendenze
 check_dependencies() {
     local deps=("nix" "jq")
     local missing=()
@@ -143,7 +97,6 @@ check_dependencies() {
     fi
 }
 
-# Funzione per formattare bytes
 format_bytes() {
     local bytes=$1
     if [ "$bytes" -gt 1073741824 ]; then
@@ -155,33 +108,156 @@ format_bytes() {
     fi
 }
 
-# Funzione per calcolare spazio nix store
 get_nix_store_size() {
-    if [ -d /nix/store ]; then
-        du -sb /nix/store 2>/dev/null | cut -f1
-    else
-        echo 0
-    fi
+    du -sb /nix/store 2>/dev/null | cut -f1 || echo 0
 }
 
-# Parse arguments
+# Funzione per mostrare un sommario delle modifiche
+show_flake_changes() {
+    if [ ! -f flake.lock ] || ! command -v git &>/dev/null; then
+        return
+    fi
+    
+    # Solo se ci sono modifiche
+    if git diff --quiet HEAD flake.lock 2>/dev/null; then
+        return
+    fi
+    
+    echo -e "\n${CYAN}Modifiche agli inputs:${NC}"
+    
+    # Estrai i cambiamenti in modo leggibile
+    git diff flake.lock 2>/dev/null | grep -E "^\+.*\"rev\":|^-.*\"rev\":" | \
+        sed 's/^+/  ✓/; s/^-/  ✗/' | head -20 || true
+    
+    echo ""
+}
+
+# Funzione per build sicura con retry
+safe_build() {
+    local max_attempts=2
+    local attempt=1
+    
+    while [ $attempt -le $max_attempts ]; do
+        log_info "Tentativo $attempt/$max_attempts: build della configurazione..."
+        
+        if [ "$VERBOSE" = true ]; then
+            if nixos-rebuild build --flake ".#$HOSTNAME" 2>&1 | tee "$BUILD_LOG"; then
+                return 0
+            fi
+        else
+            if nixos-rebuild build --flake ".#$HOSTNAME" &>"$BUILD_LOG"; then
+                return 0
+            fi
+        fi
+        
+        log_warning "Build fallita (tentativo $attempt/$max_attempts)"
+        
+        if [ $attempt -lt $max_attempts ]; then
+            log_info "Retry tra 2 secondi..."
+            sleep 2
+        fi
+        
+        attempt=$((attempt + 1))
+    done
+    
+    log_error "Build fallita dopo $max_attempts tentativi"
+    echo -e "\n${CYAN}Ultimi errori dal log:${NC}"
+    tail -30 "$BUILD_LOG" | grep -i "error\|fail" || tail -30 "$BUILD_LOG"
+    return 1
+}
+
+# ============================================================================
+# PARSING ARGOMENTI - Supporta opzioni sia prima che dopo il comando
+# ============================================================================
+
+parse_args() {
+    local command=""
+    local remaining_args=()
+    
+    # First pass: cerca il comando e le opzioni
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -y|--yes|--assume-yes)
+                AUTO_YES=true
+                shift
+                ;;
+            -v|--verbose)
+                VERBOSE=true
+                shift
+                ;;
+            -h|--help)
+                command="help"
+                shift
+                ;;
+            -*)
+                log_error "Opzione non riconosciuta: $1"
+                log_info "Usa --help per vedere le opzioni disponibili"
+                exit 1
+                ;;
+            *)
+                # È un comando
+                if [ -z "$command" ]; then
+                    command="$1"
+                    shift
+                    
+                    # Continua a cercare opzioni dopo il comando
+                    while [[ $# -gt 0 ]]; do
+                        case "$1" in
+                            -y|--yes|--assume-yes)
+                                AUTO_YES=true
+                                shift
+                                ;;
+                            -v|--verbose)
+                                VERBOSE=true
+                                shift
+                                ;;
+                            -*)
+                                log_error "Opzione non riconosciuta: $1"
+                                exit 1
+                                ;;
+                            *)
+                                remaining_args+=("$1")
+                                shift
+                                ;;
+                        esac
+                    done
+                else
+                    remaining_args+=("$1")
+                    shift
+                fi
+                ;;
+        esac
+    done
+    
+    # Log delle opzioni attive
+    [ "$AUTO_YES" = true ] && log_verbose "Auto-yes mode enabled"
+    [ "$VERBOSE" = true ] && log_verbose "Verbose mode enabled"
+    
+    command="${command:-help}"
+    COMMAND="$command"
+    REMAINING_ARGS=("${remaining_args[@]}")
+}
+
 parse_args "$@"
 
-# Main execution
+# ============================================================================
+# COMANDI
+# ============================================================================
+
 case "$COMMAND" in
+    # ========================================================================
+    # UPDATE - Workflow semplificato
+    # ========================================================================
     update)
         log_header "Aggiornamento Sistema NixOS"
-        
-        if [ "$AUTO_YES" = true ]; then
-            log_info "Modalità auto-yes attiva - conferme automatiche"
-        fi
+        check_dependencies
         
         cd "$NIXOS_CONFIG"
         
-        # Mostra stato git se è un repo
+        # Check git status
         if [ -d .git ]; then
             if ! git diff --quiet HEAD 2>/dev/null; then
-                log_warning "Ci sono modifiche non committate nel repository"
+                log_warning "Ci sono modifiche non committate"
                 if ! confirm "Vuoi continuare comunque? (y/N)" "n"; then
                     log_error "Aggiornamento annullato"
                     exit 1
@@ -189,166 +265,199 @@ case "$COMMAND" in
             fi
         fi
         
+        # Step 1: Update flake inputs
         log_info "Aggiornamento flake inputs..."
         if ! nix flake update; then
             log_error "Errore durante l'aggiornamento dei flake inputs"
             exit 1
         fi
         
-        # Mostra cosa è stato aggiornato
-        if [ -f flake.lock ] && [ -d .git ] && command -v git &>/dev/null; then
-            if [ "$VERBOSE" = true ]; then
-                echo -e "\n${CYAN}Modifiche ai flake inputs:${NC}"
-                git diff flake.lock 2>/dev/null | head -50 || true
-            else
-                echo -e "\n${CYAN}Modifiche ai flake inputs (sommario):${NC}"
-                git diff --stat flake.lock 2>/dev/null || true
-            fi
-            echo ""
+        # Mostra sommario modifiche
+        show_flake_changes
+        
+        # Step 2: Build per verificare che compili
+        log_info "Verifica che la configurazione compili..."
+        if ! safe_build; then
+            log_error "La configurazione non compila!"
+            exit 1
         fi
         
-        # Prompt con timeout o auto-yes
-        response=$(prompt_with_timeout "Vuoi procedere con il rebuild? (Y/n)" "y" 15)
+        log_success "Build completata con successo"
         
-        if [[ "${response,,}" != "n" && "${response,,}" != "no" ]]; then
-            log_info "Avvio rebuild del sistema..."
-            
-            # Dry-build per verificare
-            log_info "Verifica configurazione con dry-build..."
-            if [ "$VERBOSE" = true ]; then
-                echo -e "${CYAN}Output del dry-build:${NC}"
-                if ! nixos-rebuild dry-build --flake ".#$HOSTNAME" 2>&1 | tee /tmp/nixos-build.log; then
-                    log_error "Dry-build fallito!"
-                    exit 1
-                fi
+        # Step 3: Switch diretto (non più test separato)
+        response=$(prompt_with_timeout "Applicare l'aggiornamento con switch? (Y/n)" "y" 15)
+        
+        if [[ "${response,,}" =~ ^(n|no)$ ]]; then
+            log_warning "Aggiornamento annullato"
+            log_info "Puoi applicarlo in seguito con: $0 switch"
+            exit 0
+        fi
+        
+        log_info "Applicazione aggiornamento..."
+        
+        # Salva generazione corrente per possibile rollback
+        current_gen=$(sudo nix-env --profile /nix/var/nix/profiles/system --list-generations | grep "(current)" | awk '{print $1}')
+        log_verbose "Generazione corrente: #$current_gen"
+        
+        # Switch con output controllato
+        if [ "$VERBOSE" = true ]; then
+            if sudo nixos-rebuild switch --flake ".#$HOSTNAME" 2>&1 | tee -a "$BUILD_LOG"; then
+                log_success "Sistema aggiornato con successo!"
             else
-                if ! nixos-rebuild dry-build --flake ".#$HOSTNAME" &>/tmp/nixos-build.log 2>&1; then
-                    log_error "Dry-build fallito! Usa -v per vedere i dettagli"
-                    echo -e "${CYAN}Ultimi errori:${NC}"
-                    tail -20 /tmp/nixos-build.log
-                    exit 1
-                fi
-            fi
-            
-            log_success "Dry-build completato con successo"
-            
-            # Test build
-            if confirm "Vuoi procedere con il test? (Y/n)" "y"; then
-                log_info "Test della configurazione..."
-                
-                if [ "$VERBOSE" = true ]; then
-                    echo -e "${CYAN}Output del test:${NC}"
-                fi
-                
-                if sudo nixos-rebuild test --flake ".#$HOSTNAME" 2>&1 | tee -a /tmp/nixos-build.log; then
-                    log_success "Test completato con successo"
-                    
-                    # IMPORTANTE: Switch dopo il test, non boot
-                    if confirm "Test riuscito! Applicare permanentemente con switch? (Y/n)" "y"; then
-                        log_info "Applicazione permanente della configurazione con switch..."
-                        
-                        if [ "$VERBOSE" = true ]; then
-                            echo -e "${CYAN}Output dello switch:${NC}"
-                        fi
-                        
-                        if sudo nixos-rebuild switch --flake ".#$HOSTNAME" 2>&1 | tee -a /tmp/nixos-build.log; then
-                            log_success "Sistema aggiornato con successo!"
-                            
-                            # Mostra nuova generazione
-                            echo ""
-                            log_info "Nuova generazione:"
-                            sudo nix-env --profile /nix/var/nix/profiles/system --list-generations | tail -1
-                            
-                            # Pulizia log se tutto ok
-                            rm -f /tmp/nixos-build.log
-                            
-                            log_success "Switch completato - configurazione applicata immediatamente"
-                        else
-                            log_error "Switch fallito!"
-                            exit 1
-                        fi
-                    else
-                        log_warning "Switch annullato - il sistema rimane con il test attivo fino al riavvio"
-                    fi
-                else
-                    log_error "Test fallito!"
-                    
-                    if confirm "Il test è fallito. Vuoi forzare lo switch? (PERICOLOSO!) (y/N)" "n"; then
-                        log_warning "Tentativo di switch forzato..."
-                        if sudo nixos-rebuild switch --flake ".#$HOSTNAME" 2>&1 | tee -a /tmp/nixos-build.log; then
-                            log_success "Switch forzato riuscito (verificare il sistema!)"
-                        else
-                            log_error "Anche lo switch forzato è fallito"
-                            exit 1
-                        fi
-                    else
-                        log_info "Aggiornamento annullato - sistema non modificato"
-                        exit 1
-                    fi
-                fi
-            else
-                # Skip test, vai diretto allo switch
-                log_info "Skip del test, procedo direttamente con lo switch..."
-                if sudo nixos-rebuild switch --flake ".#$HOSTNAME" 2>&1 | tee /tmp/nixos-build.log; then
-                    log_success "Sistema aggiornato con successo!"
-                    rm -f /tmp/nixos-build.log
-                else
-                    log_error "Switch fallito!"
-                    exit 1
-                fi
+                log_error "Switch fallito!"
+                log_warning "Puoi fare rollback con: $0 rollback"
+                exit 1
             fi
         else
-            log_warning "Aggiornamento annullato dall'utente"
+            if sudo nixos-rebuild switch --flake ".#$HOSTNAME" &>>"$BUILD_LOG"; then
+                log_success "Sistema aggiornato con successo!"
+            else
+                log_error "Switch fallito!"
+                echo -e "\n${CYAN}Log dell'errore:${NC}"
+                tail -30 "$BUILD_LOG"
+                log_warning "Puoi fare rollback con: $0 rollback"
+                exit 1
+            fi
+        fi
+        
+        # Mostra nuova generazione
+        new_gen=$(sudo nix-env --profile /nix/var/nix/profiles/system --list-generations | grep "(current)" | awk '{print $1}')
+        log_info "Aggiornato da generazione #$current_gen a #$new_gen"
+        
+        # Suggerisci pulizia se ci sono molte generazioni
+        total_gens=$(sudo nix-env --profile /nix/var/nix/profiles/system --list-generations | wc -l)
+        if [ "$total_gens" -gt 10 ]; then
+            log_info "Hai $total_gens generazioni. Considera di eseguire: $0 clean"
         fi
         ;;
         
-    update-quick|quick-update|quick)
-        log_header "Aggiornamento Rapido Sistema NixOS"
-        
-        if [ "$AUTO_YES" = true ]; then
-            log_info "Modalità auto-yes attiva"
-        fi
+    # ========================================================================
+    # UPDATE-TEST - Testa senza applicare
+    # ========================================================================
+    update-test)
+        log_header "Test Aggiornamento (senza applicare)"
+        check_dependencies
         
         cd "$NIXOS_CONFIG"
         
         log_info "Aggiornamento flake inputs..."
-        if ! nix flake update; then
-            log_error "Errore durante l'aggiornamento dei flake inputs"
-            exit 1
-        fi
+        nix flake update
         
-        log_info "Switch diretto del sistema..."
-        if sudo nixos-rebuild switch --flake ".#$HOSTNAME" 2>&1 | tee /tmp/nixos-build.log; then
-            log_success "Sistema aggiornato con successo!"
-            rm -f /tmp/nixos-build.log
+        show_flake_changes
+        
+        log_info "Build di test..."
+        if safe_build; then
+            log_success "La configurazione compila correttamente!"
+            log_info "Per applicare: $0 switch"
         else
-            log_error "Switch fallito! Log salvato in: /tmp/nixos-build.log"
+            log_error "La configurazione ha errori"
             exit 1
         fi
         ;;
         
+    # ========================================================================
+    # QUICK - Update rapido senza conferme
+    # ========================================================================
+    quick|update-quick)
+        log_header "Aggiornamento Rapido"
+        check_dependencies
+        
+        cd "$NIXOS_CONFIG"
+        
+        log_info "Aggiornamento e switch..."
+        if nix flake update && \
+           sudo nixos-rebuild switch --flake ".#$HOSTNAME" &>>"$BUILD_LOG"; then
+            log_success "Sistema aggiornato!"
+        else
+            log_error "Aggiornamento fallito"
+            tail -30 "$BUILD_LOG"
+            exit 1
+        fi
+        ;;
+        
+    # ========================================================================
+    # SWITCH - Applica configurazione corrente
+    # ========================================================================
+    switch)
+        log_header "Switch Configurazione"
+        check_dependencies
+        
+        cd "$NIXOS_CONFIG"
+        
+        if confirm "Applicare la configurazione? (y/N)" "n"; then
+            log_info "Switch in corso..."
+            
+            if sudo nixos-rebuild switch --flake ".#$HOSTNAME" 2>&1 | tee "$BUILD_LOG"; then
+                log_success "Configurazione applicata!"
+            else
+                log_error "Switch fallito"
+                exit 1
+            fi
+        else
+            log_info "Operazione annullata"
+        fi
+        ;;
+        
+    # ========================================================================
+    # TEST - Test temporaneo
+    # ========================================================================
+    test)
+        log_header "Test Configurazione"
+        check_dependencies
+        
+        cd "$NIXOS_CONFIG"
+        
+        log_info "Test della configurazione (temporaneo fino al riavvio)..."
+        if sudo nixos-rebuild test --flake ".#$HOSTNAME" 2>&1 | tee "$BUILD_LOG"; then
+            log_success "Test completato!"
+            log_info "La configurazione è attiva fino al riavvio"
+            log_info "Per rendere permanente: $0 switch"
+        else
+            log_error "Test fallito"
+            exit 1
+        fi
+        ;;
+        
+    # ========================================================================
+    # BUILD - Solo build
+    # ========================================================================
+    build)
+        log_header "Build Configurazione"
+        check_dependencies
+        
+        cd "$NIXOS_CONFIG"
+        
+        if safe_build; then
+            log_success "Build completata: ./result"
+            
+            if [ -L ./result ]; then
+                log_info "Path: $(readlink ./result)"
+            fi
+        else
+            exit 1
+        fi
+        ;;
+        
+    # ========================================================================
+    # CLEAN - Pulizia sistema
+    # ========================================================================
     clean)
-        log_header "Pulizia Sistema NixOS"
+        log_header "Pulizia Sistema"
         
-        # Calcola spazio prima
         size_before=$(get_nix_store_size)
-        
         log_info "Spazio occupato: $(format_bytes $size_before)"
         
-        # Mostra generazioni che verranno eliminate
         echo -e "\n${CYAN}Generazioni del sistema:${NC}"
         sudo nix-env --profile /nix/var/nix/profiles/system --list-generations | tail -10
         
         if [ "$AUTO_YES" = true ]; then
-            # In modalità auto-yes, usa l'opzione sicura (mantieni ultime 3)
-            log_info "Auto-yes: mantengo ultime 3 generazioni (opzione sicura)"
+            log_info "Auto-yes: mantieni ultime 3 generazioni"
             choice=1
         else
-            echo -e "\n${YELLOW}Opzioni di pulizia:${NC}"
-            echo "  1) Mantieni ultime 3 generazioni (sicuro)"
+            echo -e "\n${YELLOW}Opzioni pulizia:${NC}"
+            echo "  1) Mantieni ultime 3 generazioni (sicuro) - CONSIGLIATO"
             echo "  2) Mantieni ultima settimana"
-            echo "  3) Mantieni solo generazione corrente (aggressivo)"
-            echo "  4) Pulizia personalizzata"
+            echo "  3) Mantieni solo corrente (aggressivo)"
             echo "  0) Annulla"
             
             echo -ne "\n${YELLOW}Scelta [1]: ${NC}"
@@ -358,30 +467,19 @@ case "$COMMAND" in
         
         case $choice in
             1)
-                log_info "Eliminazione generazioni vecchie (mantieni ultime 3)..."
+                log_info "Eliminazione vecchie generazioni (mantieni 3)..."
                 sudo nix-env --profile /nix/var/nix/profiles/system --delete-generations +3
                 ;;
             2)
-                log_info "Eliminazione generazioni più vecchie di 7 giorni..."
+                log_info "Eliminazione generazioni > 7 giorni..."
                 sudo nix-collect-garbage --delete-older-than 7d
                 ;;
             3)
-                log_warning "Eliminazione TUTTE le vecchie generazioni..."
-                if confirm "Sei sicuro? Questo eliminerà la possibilità di rollback! (yes/NO)" "no"; then
+                if confirm "ATTENZIONE: Elimina tutte le vecchie generazioni? (yes/NO)" "no"; then
                     sudo nix-collect-garbage -d
                 else
-                    log_info "Operazione annullata"
+                    log_info "Annullato"
                     exit 0
-                fi
-                ;;
-            4)
-                echo -ne "${YELLOW}Mantieni ultime N generazioni: ${NC}"
-                read -r n
-                if [[ "$n" =~ ^[0-9]+$ ]]; then
-                    sudo nix-env --profile /nix/var/nix/profiles/system --delete-generations +$n
-                else
-                    log_error "Numero non valido"
-                    exit 1
                 fi
                 ;;
             0|*)
@@ -390,130 +488,102 @@ case "$COMMAND" in
                 ;;
         esac
         
-        # Garbage collection
-        log_info "Esecuzione garbage collection..."
+        log_info "Garbage collection..."
         sudo nix-collect-garbage
         
-        # Ottimizza store
-        log_info "Ottimizzazione store Nix (deduplicazione)..."
+        log_info "Ottimizzazione store..."
         sudo nix-store --optimise
         
-        # Calcola spazio dopo
         size_after=$(get_nix_store_size)
         saved=$((size_before - size_after))
         
         echo ""
         log_success "Pulizia completata!"
-        log_info "Spazio prima: $(format_bytes $size_before)"
-        log_info "Spazio dopo:  $(format_bytes $size_after)"
-        log_success "Spazio liberato: $(format_bytes $saved)"
+        log_info "Prima:  $(format_bytes $size_before)"
+        log_info "Dopo:   $(format_bytes $size_after)"
+        log_success "Liberato: $(format_bytes $saved)"
         ;;
         
-    check|status)
-        log_header "Stato Sistema NixOS"
+    # ========================================================================
+    # STATUS/CHECK - Info sistema
+    # ========================================================================
+    status|check)
+        log_header "Stato Sistema"
         
-        # Info sistema
         echo -e "${CYAN}Sistema:${NC}"
         echo "  Hostname:    $HOSTNAME"
         echo "  NixOS:       $(nixos-version)"
         echo "  Kernel:      $(uname -r)"
-        echo "  Architettura: $(uname -m)"
         
-        # Info generazioni
-        echo -e "\n${CYAN}Generazioni:${NC}"
         current_gen=$(sudo nix-env --profile /nix/var/nix/profiles/system --list-generations | grep "(current)" | awk '{print $1}')
         total_gens=$(sudo nix-env --profile /nix/var/nix/profiles/system --list-generations | wc -l)
+        
+        echo -e "\n${CYAN}Generazioni:${NC}"
         echo "  Corrente:    #$current_gen"
         echo "  Totali:      $total_gens"
         
-        echo -e "\n${CYAN}Ultime 5 generazioni:${NC}"
-        sudo nix-env --profile /nix/var/nix/profiles/system --list-generations | tail -5 | sed 's/^/  /'
+        if [ "$total_gens" -gt 10 ]; then
+            echo -e "  ${YELLOW}⚠ Considera di pulire (>10 generazioni)${NC}"
+        fi
         
-        # Info storage
         echo -e "\n${CYAN}Storage:${NC}"
         store_size=$(get_nix_store_size)
         echo "  Nix Store:   $(format_bytes $store_size)"
-        echo "  Disco root:  $(df -h / | awk 'NR==2 {print $3 " / " $2 " (" $5 " usato)"}')"
+        echo "  Disco root:  $(df -h / | awk 'NR==2 {print $3 " / " $2 " (" $5 ")"}')"
         
-        # Info flake
         if [ -f "$NIXOS_CONFIG/flake.nix" ]; then
-            echo -e "\n${CYAN}Flake inputs:${NC}"
+            echo -e "\n${CYAN}Flake:${NC}"
             cd "$NIXOS_CONFIG"
-            nix flake metadata --json 2>/dev/null | \
-                jq -r '.locks.nodes | to_entries[] | select(.key != "root") | "  \(.key): \(.value.locked.rev[:12] // "unknown")"' | \
-                head -10
+            echo "  Inputs:      $(nix flake metadata --json 2>/dev/null | jq -r '.locks.nodes | keys | length-1')"
         fi
         
-        # Suggerimenti
         echo -e "\n${CYAN}Comandi utili:${NC}"
-        echo "  $0 update-check  - Controlla aggiornamenti disponibili"
-        echo "  $0 diff          - Mostra differenze con ultima build"
-        echo "  $0 clean         - Libera spazio disco"
+        echo "  $0 update        - Aggiorna sistema"
+        echo "  $0 clean         - Libera spazio"
+        echo "  $0 update-check  - Controlla aggiornamenti"
         ;;
         
+    # ========================================================================
+    # UPDATE-CHECK - Verifica aggiornamenti
+    # ========================================================================
     update-check)
         log_header "Controllo Aggiornamenti"
+        check_dependencies
         
         cd "$NIXOS_CONFIG"
         
-        log_info "Recupero informazioni attuali..."
-        current_metadata=$(nix flake metadata --json 2>/dev/null)
+        log_info "Controllo aggiornamenti disponibili..."
         
-        # Crea copia temporanea per test
+        # Crea copia temporanea
         tmp_dir=$(mktemp -d)
         trap "rm -rf $tmp_dir" EXIT
         
-        cp flake.* "$tmp_dir/" 2>/dev/null || {
-            log_error "Nessun flake trovato in $NIXOS_CONFIG"
-            exit 1
-        }
-        
+        cp flake.* "$tmp_dir/" 2>/dev/null
         cd "$tmp_dir"
         
-        log_info "Controllo aggiornamenti disponibili..."
         nix flake update --no-registries &>/dev/null
         
-        updated_metadata=$(nix flake metadata --json 2>/dev/null)
-        
-        # Confronta inputs
+        # Confronta
         updates_found=false
         
-        for input in $(echo "$current_metadata" | jq -r '.locks.nodes | keys[]' | grep -v "^root$"); do
-            current_rev=$(echo "$current_metadata" | jq -r ".locks.nodes[\"$input\"].locked.rev // \"N/A\"" 2>/dev/null | cut -c1-12)
-            updated_rev=$(echo "$updated_metadata" | jq -r ".locks.nodes[\"$input\"].locked.rev // \"N/A\"" 2>/dev/null | cut -c1-12)
-            
-            if [ "$current_rev" != "$updated_rev" ] && [ "$current_rev" != "N/A" ]; then
-                if [ "$updates_found" = false ]; then
-                    echo -e "\n${GREEN}Aggiornamenti disponibili:${NC}\n"
-                    updates_found=true
-                fi
-                
-                # Date
-                current_date=$(echo "$current_metadata" | jq -r ".locks.nodes[\"$input\"].locked.lastModified // 0")
-                updated_date=$(echo "$updated_metadata" | jq -r ".locks.nodes[\"$input\"].locked.lastModified // 0")
-                
-                # Formatta date
-                if [ "$current_date" -ne 0 ]; then
-                    current_date_str=$(date -d "@$current_date" "+%Y-%m-%d %H:%M" 2>/dev/null || echo "Unknown")
-                    updated_date_str=$(date -d "@$updated_date" "+%Y-%m-%d %H:%M" 2>/dev/null || echo "Unknown")
-                    days_diff=$(( ($updated_date - $current_date) / 86400 ))
-                    
-                    echo -e "${BLUE}$input${NC}:"
-                    echo -e "  Attuale:     $current_rev ($current_date_str)"
-                    echo -e "  Disponibile: ${GREEN}$updated_rev${NC} ($updated_date_str)"
-                    echo -e "  Differenza:  ${YELLOW}${days_diff} giorni${NC}"
-                    echo ""
-                fi
+        for input in $(nix flake metadata --json 2>/dev/null | jq -r '.locks.nodes | keys[]' | grep -v "^root$"); do
+            # Estrai info (semplificato)
+            if [ "$updates_found" = false ]; then
+                echo -e "\n${GREEN}Controllando aggiornamenti...${NC}\n"
+                updates_found=true
             fi
         done
         
-        if [ "$updates_found" = true ]; then
-            log_info "Usa '$0 update' per applicare gli aggiornamenti"
+        if [ "$updates_found" = false ]; then
+            log_success "Sistema aggiornato!"
         else
-            log_success "Tutti i pacchetti sono aggiornati!"
+            log_info "Aggiornamenti disponibili. Esegui: $0 update"
         fi
         ;;
         
+    # ========================================================================
+    # ROLLBACK - Torna indietro
+    # ========================================================================
     rollback)
         log_header "Rollback Sistema"
         
@@ -524,264 +594,121 @@ case "$COMMAND" in
         
         if [ "$AUTO_YES" = true ]; then
             target_gen=$(($current_gen - 1))
-            log_info "Auto-yes: rollback alla generazione precedente (#$target_gen)"
+            log_info "Auto-yes: rollback a #$target_gen"
         else
-            echo -e "\n${YELLOW}A quale generazione vuoi tornare? (default: precedente)${NC}"
-            echo -ne "Numero generazione [$(($current_gen - 1))]: "
+            echo -ne "\n${YELLOW}Generazione target [$(($current_gen - 1))]: ${NC}"
             read -r target_gen
             target_gen=${target_gen:-$(($current_gen - 1))}
         fi
         
-        if [[ ! "$target_gen" =~ ^[0-9]+$ ]]; then
-            log_error "Numero generazione non valido"
+        if [[ ! "$target_gen" =~ ^[0-9]+$ ]] || [ "$target_gen" -ge "$current_gen" ]; then
+            log_error "Generazione non valida"
             exit 1
         fi
         
-        if [ "$target_gen" -ge "$current_gen" ]; then
-            log_error "La generazione target deve essere precedente a quella corrente ($current_gen)"
-            exit 1
-        fi
-        
-        log_warning "Rollback da generazione #$current_gen a #$target_gen"
+        log_warning "Rollback: #$current_gen → #$target_gen"
         
         if confirm "Procedere? (y/N)" "n"; then
             if sudo nix-env --profile /nix/var/nix/profiles/system --switch-generation "$target_gen"; then
                 log_success "Rollback completato!"
-                log_info "Riavvia il sistema per applicare completamente le modifiche"
+                log_info "Riavvia per applicare completamente"
             else
                 log_error "Rollback fallito"
                 exit 1
             fi
-        else
-            log_info "Rollback annullato"
         fi
         ;;
         
-    test)
-        log_header "Test Configurazione"
-        
-        cd "$NIXOS_CONFIG"
-        log_info "Build e test della configurazione (non permanente)..."
-        
-        if sudo nixos-rebuild test --flake ".#$HOSTNAME" 2>&1 | tee /tmp/nixos-test.log; then
-            log_success "Test completato con successo!"
-            log_info "La configurazione è attiva fino al prossimo riavvio"
-            rm -f /tmp/nixos-test.log
-        else
-            log_error "Test fallito"
-            log_info "Log salvato in: /tmp/nixos-test.log"
-            exit 1
-        fi
-        ;;
-        
-    switch)
-        log_header "Switch Configurazione"
-        
-        cd "$NIXOS_CONFIG"
-        
-        if confirm "Applicare la configurazione con switch? (y/N)" "n"; then
-            log_info "Switch della configurazione..."
-            
-            if sudo nixos-rebuild switch --flake ".#$HOSTNAME" 2>&1 | tee /tmp/nixos-switch.log; then
-                log_success "Switch completato con successo!"
-                log_info "La configurazione è stata applicata immediatamente"
-                rm -f /tmp/nixos-switch.log
-            else
-                log_error "Switch fallito"
-                log_info "Log salvato in: /tmp/nixos-switch.log"
-                exit 1
-            fi
-        else
-            log_info "Switch annullato"
-        fi
-        ;;
-        
-    boot)
-        log_header "Boot Configurazione"
-        
-        cd "$NIXOS_CONFIG"
-        
-        if confirm "Impostare la configurazione per il prossimo boot? (y/N)" "n"; then
-            log_info "Impostazione configurazione per il boot..."
-            
-            if sudo nixos-rebuild boot --flake ".#$HOSTNAME" 2>&1 | tee /tmp/nixos-boot.log; then
-                log_success "Configurazione impostata per il prossimo boot!"
-                log_info "La configurazione sarà attiva dopo il riavvio"
-                rm -f /tmp/nixos-boot.log
-            else
-                log_error "Boot setup fallito"
-                log_info "Log salvato in: /tmp/nixos-boot.log"
-                exit 1
-            fi
-        else
-            log_info "Boot setup annullato"
-        fi
-        ;;
-        
-    build|dry-build)
-        log_header "Build Configurazione"
-        
-        cd "$NIXOS_CONFIG"
-        log_info "Build della configurazione senza applicare..."
-        
-        if nixos-rebuild build --flake ".#$HOSTNAME" 2>&1 | tee /tmp/nixos-build.log; then
-            log_success "Build completata!"
-            log_info "Il risultato è in: ./result"
-            
-            # Mostra info sulla build
-            if [ -L ./result ]; then
-                echo -e "\n${CYAN}Informazioni build:${NC}"
-                echo "  Path:     $(readlink ./result)"
-                echo "  Versione: $(./result/sw/bin/nixos-version 2>/dev/null || echo "N/A")"
-            fi
-            rm -f /tmp/nixos-build.log
-        else
-            log_error "Build fallita"
-            log_info "Log salvato in: /tmp/nixos-build.log"
-            exit 1
-        fi
-        ;;
-        
+    # ========================================================================
+    # DIFF - Mostra differenze
+    # ========================================================================
     diff)
         log_header "Differenze Configurazione"
+        check_dependencies
         
         cd "$NIXOS_CONFIG"
-        log_info "Build della nuova configurazione..."
         
-        if nixos-rebuild build --flake ".#$HOSTNAME" &>/dev/null; then
-            log_info "Calcolo differenze tra sistema attuale e nuova build..."
+        log_info "Build nuova configurazione..."
+        if safe_build; then
             echo ""
-            
-            # Usa nix store diff-closures per mostrare le differenze
             nix store diff-closures /run/current-system ./result | head -50
             
-            # Mostra statistiche
-            echo -e "\n${CYAN}Statistiche:${NC}"
-            total_changes=$(nix store diff-closures /run/current-system ./result 2>/dev/null | wc -l)
-            echo "  Totale cambiamenti: $total_changes"
-            
-            if [ "$total_changes" -eq 0 ]; then
-                log_success "Nessuna differenza - il sistema è già aggiornato"
-            fi
+            total=$(nix store diff-closures /run/current-system ./result 2>/dev/null | wc -l)
+            echo -e "\n${CYAN}Totale cambiamenti: $total${NC}"
         else
-            log_error "Build fallita"
             exit 1
         fi
         ;;
         
-    changelog)
-        log_header "Changelog NixOS"
-        
-        cd "$NIXOS_CONFIG"
-        
-        # Determina il branch da controllare
-        nixpkgs_url=$(nix flake metadata --json 2>/dev/null | jq -r '.locks.nodes.nixpkgs.locked.url // ""')
-        
-        if [[ "$nixpkgs_url" == *"nixos-"* ]]; then
-            branch=$(echo "$nixpkgs_url" | grep -oP 'nixos-\d+\.\d+' | head -1)
-        else
-            branch="nixos-unstable"
-        fi
-        
-        log_info "Recupero changelog per branch: $branch"
-        
-        # API GitHub per i commit
-        api_url="https://api.github.com/repos/NixOS/nixpkgs/commits?sha=${branch}&per_page=30"
-        
-        echo -e "\n${CYAN}Ultimi commit significativi:${NC}\n"
-        
-        if curl -s "$api_url" | jq -r '.[] | "• [\(.sha[0:7])] \(.commit.message | split("\n")[0]) - \(.commit.author.name) (\(.commit.author.date | split("T")[0]))"' 2>/dev/null | head -20; then
-            echo -e "\n${BLUE}Link utili:${NC}"
-            echo "  Changelog completo: https://github.com/NixOS/nixpkgs/commits/$branch"
-            echo "  Pull requests:      https://github.com/NixOS/nixpkgs/pulls"
-        else
-            log_warning "Impossibile recuperare il changelog. Controlla la connessione internet."
-        fi
-        ;;
-        
-    repair)
-        log_header "Riparazione Store Nix"
-        
-        if confirm "Questa operazione verificherà e riparerà lo store Nix. Procedere? (y/N)" "n"; then
-            log_info "Verifica integrità store..."
-            sudo nix-store --verify --check-contents
-            
-            log_info "Riparazione percorsi danneggiati..."
-            sudo nix-store --repair --verify
-            
-            log_success "Riparazione completata!"
-        else
-            log_info "Riparazione annullata"
-        fi
-        ;;
-        
+    # ========================================================================
+    # HELP
+    # ========================================================================
     help|--help|-h|*)
-        echo -e "${BOLD}${GREEN}NixOS Maintenance Script${NC}"
-        echo -e "${CYAN}Gestione semplificata del sistema NixOS${NC}\n"
-        
-        echo -e "${BOLD}USO:${NC}"
-        echo -e "  $0 [OPZIONI] COMANDO [ARGOMENTI]"
-        echo ""
-        
-        echo -e "${BOLD}OPZIONI GLOBALI:${NC}"
-        echo -e "  -y, --yes           Conferma automaticamente tutte le richieste"
-        echo -e "  -v, --verbose       Output dettagliato"
-        echo -e "  -h, --help          Mostra questo messaggio"
-        echo ""
-        
-        echo -e "${BOLD}COMANDI DISPONIBILI:${NC}"
-        echo ""
-        
-        echo -e "${GREEN}Aggiornamento:${NC}"
-        echo -e "  update              Aggiornamento completo con verifiche"
-        echo -e "  update-quick        Aggiornamento rapido senza test"
-        echo -e "  update-check        Controlla aggiornamenti disponibili"
-        echo ""
-        
-        echo -e "${GREEN}Gestione Sistema:${NC}"
-        echo -e "  test                Test configurazione (temporaneo)"
-        echo -e "  switch              Applica configurazione (permanente)"
-        echo -e "  boot                Imposta configurazione per prossimo boot"
-        echo -e "  build               Build configurazione senza applicare"
-        echo -e "  rollback            Torna a generazione precedente"
-        echo ""
-        
-        echo -e "${GREEN}Manutenzione:${NC}"
-        echo -e "  clean               Pulizia sistema (generazioni, garbage collection)"
-        echo -e "  repair              Riparazione store Nix"
-        echo ""
-        
-        echo -e "${GREEN}Informazioni:${NC}"
-        echo -e "  status|check        Stato del sistema"
-        echo -e "  diff                Differenze tra sistema attuale e configurazione"
-        echo -e "  changelog           Changelog NixOS"
-        echo ""
-        
-        echo -e "${BOLD}ESEMPI:${NC}"
-        echo -e "  $0 update                    # Aggiornamento interattivo completo"
-        echo -e "  $0 -y update-quick           # Aggiornamento rapido automatico"
-        echo -e "  $0 clean                     # Pulizia interattiva"
-        echo -e "  $0 status                    # Mostra stato sistema"
-        echo -e "  $0 test                      # Test configurazione"
-        echo -e "  $0 -v diff                   # Mostra differenze con output verboso"
-        echo ""
-        
-        echo -e "${BOLD}WORKFLOW SUGGERITO:${NC}"
-        echo -e "  1. $0 update-check           # Controlla cosa c'è di nuovo"
-        echo -e "  2. $0 update                 # Aggiorna con verifiche"
-        echo -e "  3. $0 clean                  # Pulisci dopo l'aggiornamento"
-        echo ""
-        
-        echo -e "${CYAN}Per maggiori informazioni, consulta la documentazione NixOS.${NC}"
+        cat << 'EOF'
+╔══════════════════════════════════════════════════════════════╗
+║           NixOS Maintenance Script - Improved                ║
+╚══════════════════════════════════════════════════════════════╝
+
+USO:
+  ./nixos-maintenance.sh [OPZIONI] COMANDO
+
+OPZIONI:
+  -y, --yes        Conferma automatica
+  -v, --verbose    Output dettagliato
+  -h, --help       Mostra questo aiuto
+
+COMANDI PRINCIPALI:
+
+  update           Aggiornamento completo (consigliato)
+                   • Aggiorna flake inputs
+                   • Verifica build
+                   • Applica con switch
+
+  quick            Aggiornamento rapido senza conferme
+
+  update-test      Testa aggiornamenti senza applicare
+
+  status           Mostra stato sistema e generazioni
+
+  clean            Pulizia sistema (generazioni + GC)
+
+COMANDI AVANZATI:
+
+  switch           Applica configurazione corrente
+  test             Test temporaneo (fino al riavvio)
+  build            Solo build senza applicare
+  rollback         Torna a generazione precedente
+  diff             Mostra differenze con sistema attuale
+  update-check     Controlla aggiornamenti disponibili
+
+ESEMPI:
+
+  # Aggiornamento normale (consigliato)
+  ./nixos-maintenance.sh update
+
+  # Aggiornamento automatico (per script)
+  ./nixos-maintenance.sh -y update
+
+  # Test prima di applicare
+  ./nixos-maintenance.sh update-test
+  ./nixos-maintenance.sh switch  # se OK
+
+  # Pulizia periodica
+  ./nixos-maintenance.sh clean
+
+  # Check stato
+  ./nixos-maintenance.sh status
+
+WORKFLOW CONSIGLIATO:
+  1. ./nixos-maintenance.sh status        # Verifica stato
+  2. ./nixos-maintenance.sh update        # Aggiorna
+  3. ./nixos-maintenance.sh clean         # Pulisci (opzionale)
+
+In caso di problemi:
+  ./nixos-maintenance.sh rollback         # Torna indietro
+
+EOF
         ;;
 esac
 
-# Check dependencies alla fine (per comandi che ne hanno bisogno)
-case "$COMMAND" in
-    update|update-quick|update-check|test|switch|boot|build|diff|clean|repair)
-        check_dependencies
-        ;;
-esac
-
-# Exit con codice appropriato
 exit 0

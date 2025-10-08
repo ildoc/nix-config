@@ -11,7 +11,7 @@
 
   # Pacchetti specifici per questo host
   environment.systemPackages = with pkgs; [
-    unstable.jetbrains.rider  # IDE per .NET
+    jetbrains.rider  # IDE per .NET
     prismlauncher            # Minecraft launcher
     # teams-for-linux        # Commentato se non necessario
   ];
