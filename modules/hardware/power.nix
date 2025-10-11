@@ -13,85 +13,86 @@ let
   hasBattery = hostConfig.hardware.hasBattery or false;
 in
 {
-  # ============================================================================
-  # POWER MANAGEMENT (LAPTOP ONLY)
-  # ============================================================================
   config = lib.mkIf isLaptop {
-    # Disabilita power-profiles-daemon (conflitto con TLP)
+    # Disabilita power-profiles-daemon
     services.power-profiles-daemon.enable = false;
 
     services.tlp = {
       enable = true;
       settings = {
-        # ============================================================================
-        # FIX PRINCIPALE: Rimuovi opzioni che possono causare blocchi
-        # ============================================================================
-        
-        # CPU - Mantieni semplice
-        CPU_SCALING_GOVERNOR_ON_AC = "schedutil";
+        # CPU
+        CPU_SCALING_GOVERNOR_ON_AC = "performance";
         CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
         
-        # IMPORTANTE: Usa valori numerici corretti per USB_AUTOSUSPEND
-        USB_AUTOSUSPEND = 0;  # Disabilita completamente
+        CPU_ENERGY_PERF_POLICY_ON_AC = "performance";
+        CPU_ENERGY_PERF_POLICY_ON_BAT = "power";
         
-        # AMD Graphics - Rimuovi opzioni che potrebbero non esistere sul tuo hardware
-        # Commenta queste se causano problemi:
-        # RADEON_DPM_STATE_ON_AC = "performance";
-        # RADEON_DPM_STATE_ON_BAT = "battery";
-        # RADEON_POWER_PROFILE_ON_AC = "default";
-        # RADEON_POWER_PROFILE_ON_BAT = "low";
+        CPU_BOOST_ON_AC = 1;
+        CPU_BOOST_ON_BAT = 0;
         
-        # Runtime PM - Usa stringhe corrette
-        RUNTIME_PM_ON_AC = "off";
-        RUNTIME_PM_ON_BAT = "off";
+        # Disabilita COMPLETAMENTE USB autosuspend (causa problemi)
+        USB_AUTOSUSPEND = 0;
         
-        # Sound power save
+        # Runtime PM - lascia a "auto" ma monitora
+        RUNTIME_PM_ON_AC = "auto";
+        RUNTIME_PM_ON_BAT = "auto";
+        
+        # AMD GPU - usa solo opzioni supportate
+        RADEON_DPM_STATE_ON_AC = "performance";
+        RADEON_DPM_STATE_ON_BAT = "battery";
+        
+        # Sound
         SOUND_POWER_SAVE_ON_AC = 0;
-        SOUND_POWER_SAVE_ON_BAT = 0;
+        SOUND_POWER_SAVE_ON_BAT = 1;
         
-        # NVMe/SATA - Rimuovi se causano problemi
-        # AHCI_RUNTIME_PM_ON_AC = "off";
-        # AHCI_RUNTIME_PM_ON_BAT = "off";
+        # Disk
+        DISK_IDLE_SECS_ON_AC = 0;
+        DISK_IDLE_SECS_ON_BAT = 2;
         
-        # Aggiungi START_CHARGE_THRESH e STOP_CHARGE_THRESH se supportati
+        # Batteria (se supportato dal tuo laptop)
         # START_CHARGE_THRESH_BAT0 = 75;
         # STOP_CHARGE_THRESH_BAT0 = 80;
       };
     };
 
-    # ============================================================================
-    # FIX: Assicura che TLP non venga riavviato durante rebuild
-    # ============================================================================
+    # CRITICO: Non riavviare TLP durante rebuild
     systemd.services.tlp = {
       restartIfChanged = false;
       reloadIfChanged = true;
     };
 
-    # ============================================================================
-    # LAPTOP HARDWARE FEATURES
-    # ============================================================================
+    # Luminosità
     programs.light.enable = true;
-    services.thermald.enable = lib.mkDefault false; # Disabilita se causa conflitti con AMD
+    
+    # Disabilita thermald per AMD (causa conflitti)
+    services.thermald.enable = false;
 
-    # Configurazioni Logind
+    # ============================================================================
+    # LOGIND - GESTIONE SEMPLIFICATA
+    # ============================================================================
     services.logind = {
+      # Comportamento lid
       lidSwitch = "suspend";
       lidSwitchExternalPower = "lock";
       lidSwitchDocked = "ignore";
 
       extraConfig = ''
-        # Timeout per idle (in secondi)
-        IdleAction=lock
-        IdleActionSec=1800
-
+        # TIMEOUT IDLE - aumentato per evitare conflitti con KDE
+        IdleAction=ignore
+        IdleActionSec=0
+        
         # Gestione tasti power
         HandlePowerKey=poweroff
         HandlePowerKeyLongPress=reboot
         HandleSuspendKey=suspend
-        HandleHibernateKey=hibernate
-
-        # Non ignorare gli inibitori del lid switch
-        LidSwitchIgnoreInhibited=no
+        HandleHibernateKey=ignore
+        
+        # CRITICO: Rispetta gli inibitori di KDE
+        HandleLidSwitch=suspend
+        HandleLidSwitchExternalPower=lock
+        HandleLidSwitchDocked=ignore
+        LidSwitchIgnoreInhibited=yes
+        IdleActionIgnoreInhibited=yes
       '';
     };
 
@@ -102,6 +103,19 @@ in
       "vm.swappiness" = 10;
       "vm.vfs_cache_pressure" = 50;
       "vm.laptop_mode" = 5;
+      "vm.dirty_writeback_centisecs" = 1500;
     };
+    
+    # ============================================================================
+    # WAKE-UP TRIGGERS - Previeni wake-up indesiderati
+    # ============================================================================
+    powerManagement.powerUpCommands = ''
+      # Disabilita wake-up da USB (mouse/tastiera wireless)
+      for device in /sys/bus/usb/devices/*/power/wakeup; do
+        if [ -w "$device" ]; then
+          echo disabled > "$device" 2>/dev/null || true
+        fi
+      done
+    '';
   };
 }
